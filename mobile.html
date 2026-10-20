@@ -1,0 +1,3162 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="theme-color" content="#0a0e17" />
+  <title>StockPilot AI · 智投戰情室 (Google Cloud PWA)</title>
+  <style>
+    :root {
+      --bg: #070a12;
+      --card-bg: rgba(18, 24, 38, 0.85);
+      --card-border: rgba(255, 255, 255, 0.08);
+      --text: #f1f5f9;
+      --muted: #94a3b8;
+      --green: #22c55e;
+      --green-bg: rgba(34, 197, 94, 0.12);
+      --red: #ef4444;
+      --red-bg: rgba(239, 68, 68, 0.12);
+      --yellow: #eab308;
+      --yellow-bg: rgba(234, 179, 8, 0.12);
+      --blue: #38bdf8;
+      --blue-bg: rgba(56, 189, 248, 0.12);
+      --accent: #6366f1;
+      --radius-sm: 10px;
+      --radius-md: 16px;
+      --radius-lg: 20px;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    body {
+      background: var(--bg);
+      background-image: 
+        radial-gradient(at 0% 0%, rgba(99, 102, 241, 0.15) 0px, transparent 40%),
+        radial-gradient(at 100% 100%, rgba(56, 189, 248, 0.1) 0px, transparent 40%);
+      color: var(--text);
+      font-family: -apple-system, BlinkMacSystemFont, "PingFang TC", "Noto Sans TC", sans-serif;
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      user-select: none;
+    }
+
+    /* Responsive Main Wrapper for Phone & Desktop */
+    .app-viewport {
+      width: 100%;
+      max-width: 580px;
+      min-height: 100vh;
+      padding: calc(14px + env(safe-area-inset-top)) 14px calc(80px + env(safe-area-inset-bottom));
+      position: relative;
+    }
+
+    @media (min-width: 600px) {
+      body {
+        background-color: #03060f;
+        background-image: 
+          radial-gradient(circle at 50% 20%, rgba(99, 102, 241, 0.18) 0px, transparent 600px),
+          radial-gradient(circle at 80% 80%, rgba(56, 189, 248, 0.12) 0px, transparent 500px);
+      }
+      .app-viewport {
+        background: rgba(11, 15, 26, 0.85);
+        border-left: 1px solid rgba(255, 255, 255, 0.08);
+        border-right: 1px solid rgba(255, 255, 255, 0.08);
+        box-shadow: 0 0 50px rgba(0, 0, 0, 0.6);
+        padding: 24px 20px calc(85px + env(safe-area-inset-bottom));
+      }
+    }
+
+    /* Top App Bar */
+    .app-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 12px;
+    }
+
+    .app-title-group {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .app-badge {
+      background: linear-gradient(135deg, #6366f1, #38bdf8);
+      color: #fff;
+      font-weight: 800;
+      font-size: 0.72rem;
+      padding: 4px 8px;
+      border-radius: 6px;
+      letter-spacing: 0.5px;
+      cursor: pointer;
+    }
+
+    .app-title {
+      font-size: 1.15rem;
+      font-weight: 800;
+      letter-spacing: -0.01em;
+    }
+
+    .top-actions {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .icon-btn {
+      background: rgba(255, 255, 255, 0.06);
+      border: 1px solid var(--card-border);
+      color: var(--text);
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      font-size: 1rem;
+      transition: all 0.2s;
+    }
+
+    .icon-btn:active {
+      transform: scale(0.92);
+      background: rgba(255, 255, 255, 0.15);
+    }
+
+    .icon-btn.rotating svg {
+      animation: spin 0.8s linear infinite;
+    }
+
+    .icon-btn.brief-header-btn {
+      width: auto;
+      min-width: 36px;
+      padding: 0 10px;
+      border-radius: 18px;
+      font-size: 0.72rem;
+      font-weight: 800;
+      gap: 2px;
+      background: linear-gradient(135deg, rgba(99,102,241,0.35), rgba(56,189,248,0.28));
+      border-color: rgba(56,189,248,0.45);
+      color: #e0f2fe;
+      white-space: nowrap;
+    }
+
+    .icon-btn.magi-header-btn {
+      width: auto;
+      min-width: 36px;
+      padding: 0 10px;
+      border-radius: 18px;
+      font-size: 0.72rem;
+      font-weight: 800;
+      gap: 2px;
+      background: linear-gradient(135deg, rgba(244,114,182,0.35), rgba(168,85,247,0.28));
+      border-color: rgba(244,114,182,0.45);
+      color: #fce7f3;
+      white-space: nowrap;
+    }
+
+    .btn-magi {
+      flex: 1;
+      border: none;
+      border-radius: 12px;
+      padding: 12px 10px;
+      font-size: 0.85rem;
+      font-weight: 800;
+      color: #fdf4ff;
+      background: linear-gradient(135deg, #db2777, #7c3aed);
+      box-shadow: 0 4px 14px rgba(219,39,119,0.35);
+      cursor: pointer;
+    }
+    .btn-magi:disabled { opacity: 0.65; cursor: wait; }
+
+    .magi-decision-banner {
+      margin: 10px 0 12px;
+      padding: 12px 14px;
+      border-radius: 14px;
+      background: linear-gradient(135deg, rgba(99,102,241,0.25), rgba(236,72,153,0.18));
+      border: 1px solid rgba(196,181,253,0.4);
+    }
+    .magi-decision-banner .tally {
+      display: inline-block;
+      margin-left: 8px;
+      padding: 2px 8px;
+      border-radius: 999px;
+      font-size: 0.72rem;
+      font-weight: 800;
+      background: rgba(15,23,42,0.55);
+      color: #fde68a;
+    }
+    .magi-brains {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      margin: 10px 0;
+    }
+    .magi-brain-card {
+      padding: 12px;
+      border-radius: 14px;
+      background: rgba(15,23,42,0.55);
+      border: 1px solid rgba(148,163,184,0.25);
+    }
+    .magi-brain-card.melchior { border-color: rgba(56,189,248,0.45); }
+    .magi-brain-card.balthasar { border-color: rgba(248,113,113,0.45); }
+    .magi-brain-card.casper { border-color: rgba(52,211,153,0.45); }
+    .magi-brain-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 6px;
+    }
+    .magi-brain-name { font-weight: 800; font-size: 0.9rem; color: #f8fafc; }
+    .magi-brain-role { font-size: 0.7rem; color: #94a3b8; }
+    .magi-vote-pill {
+      font-size: 0.72rem;
+      font-weight: 800;
+      padding: 3px 8px;
+      border-radius: 999px;
+      background: rgba(99,102,241,0.3);
+      color: #e0e7ff;
+    }
+    .magi-rationale { font-size: 0.8rem; color: #cbd5e1; line-height: 1.45; }
+    .magi-focus { margin-top: 6px; font-size: 0.72rem; color: #a5b4fc; }
+    .magi-dissent, .magi-actions {
+      margin-top: 12px;
+      padding: 10px 12px;
+      border-radius: 12px;
+      background: rgba(30,41,59,0.65);
+      border: 1px solid rgba(148,163,184,0.2);
+    }
+    .magi-dissent h4, .magi-actions h4 {
+      margin: 0 0 8px;
+      font-size: 0.78rem;
+      color: #fbbf24;
+    }
+    .magi-actions h4 { color: #67e8f9; }
+    .magi-dissent li, .magi-actions li {
+      font-size: 0.78rem;
+      color: #e2e8f0;
+      margin: 0 0 6px;
+      line-height: 1.4;
+    }
+    .magi-meta {
+      margin-top: 10px;
+      font-size: 0.68rem;
+      color: #64748b;
+    }
+
+
+    @keyframes spin {
+      100% { transform: rotate(360deg); }
+    }
+
+    /* Total Assets Card */
+    .asset-card {
+      background: linear-gradient(145deg, rgba(24, 32, 54, 0.9), rgba(15, 20, 35, 0.95));
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      border-radius: var(--radius-lg);
+      padding: 18px 16px;
+      margin-bottom: 12px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .asset-card::after {
+      content: '';
+      position: absolute;
+      top: -30px;
+      right: -30px;
+      width: 100px;
+      height: 100px;
+      background: radial-gradient(circle, rgba(99, 102, 241, 0.3), transparent 70%);
+      pointer-events: none;
+    }
+
+    .asset-label {
+      font-size: 0.8rem;
+      color: var(--muted);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 6px;
+    }
+
+    .privacy-badge {
+      font-size: 0.72rem;
+      color: var(--blue);
+      background: var(--blue-bg);
+      padding: 2px 8px;
+      border-radius: 12px;
+      font-weight: 600;
+    }
+
+    .asset-val {
+      font-size: 2rem;
+      font-weight: 900;
+      letter-spacing: -0.02em;
+      font-variant-numeric: tabular-nums;
+      margin-bottom: 8px;
+    }
+
+    .asset-metrics {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+      padding-top: 10px;
+      border-top: 1px solid rgba(255, 255, 255, 0.08);
+    }
+
+    .metric-box {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .metric-sub-label {
+      font-size: 0.72rem;
+      color: var(--muted);
+      margin-bottom: 2px;
+    }
+
+    .metric-sub-val {
+      font-size: 0.95rem;
+      font-weight: 700;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .val-up { color: var(--red); }
+    .val-down { color: var(--green); }
+    .val-flat { color: var(--muted); }
+
+    /* Market Session Pill */
+    .market-status-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid var(--card-border);
+      border-radius: var(--radius-sm);
+      padding: 8px 12px;
+      font-size: 0.76rem;
+      color: var(--muted);
+      margin-bottom: 12px;
+    }
+
+    .pulse-dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: var(--green);
+      box-shadow: 0 0 8px var(--green);
+      display: inline-block;
+      margin-right: 5px;
+      animation: pulse 1.5s infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.4; transform: scale(0.85); }
+    }
+
+    /* Filter Tabs */
+    .filter-tabs {
+      display: flex;
+      gap: 6px;
+      overflow-x: auto;
+      padding-bottom: 6px;
+      margin-bottom: 12px;
+      scrollbar-width: none;
+    }
+    .filter-tabs::-webkit-scrollbar { display: none; }
+
+    .tab-pill {
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid var(--card-border);
+      color: var(--muted);
+      padding: 6px 12px;
+      border-radius: 20px;
+      font-size: 0.78rem;
+      font-weight: 600;
+      white-space: nowrap;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .tab-pill.active {
+      background: var(--text);
+      color: #000;
+      border-color: var(--text);
+    }
+
+    /* Holdings List */
+    .stock-list {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .stock-card {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: var(--radius-md);
+      padding: 14px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      backdrop-filter: blur(12px);
+    }
+
+    .stock-card:hover {
+      border-color: rgba(255, 255, 255, 0.22);
+    }
+
+    .stock-card:active {
+      transform: scale(0.985);
+    }
+
+    .card-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: 6px;
+    }
+
+    .stock-name-group {
+      display: flex;
+      align-items: baseline;
+      gap: 6px;
+    }
+
+    .stock-name {
+      font-size: 1.05rem;
+      font-weight: 800;
+    }
+
+    .stock-symbol {
+      font-size: 0.8rem;
+      color: var(--muted);
+      font-weight: 600;
+    }
+
+    .stock-price-group {
+      text-align: right;
+    }
+
+    .stock-price {
+      font-size: 1.15rem;
+      font-weight: 900;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .stock-change {
+      font-size: 0.76rem;
+      font-weight: 700;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .card-chart-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      margin: 4px 0 6px;
+    }
+
+    .mini-sparkline-svg {
+      width: 130px;
+      height: 32px;
+      overflow: visible;
+    }
+
+    .card-bottom {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding-top: 8px;
+      border-top: 1px dashed rgba(255, 255, 255, 0.08);
+      font-size: 0.78rem;
+    }
+
+    .unreal-pnl {
+      font-weight: 700;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .advice-tag {
+      font-size: 0.72rem;
+      font-weight: 700;
+      padding: 3px 8px;
+      border-radius: 6px;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+    }
+    .tag-review { background: rgba(239, 68, 68, 0.2); color: #fca5a5; border: 1px solid rgba(239, 68, 68, 0.4); }
+    .tag-lock { background: rgba(234, 179, 8, 0.2); color: #fde047; border: 1px solid rgba(234, 179, 8, 0.4); }
+    .tag-hold { background: rgba(56, 189, 248, 0.2); color: #7dd3fc; border: 1px solid rgba(56, 189, 248, 0.4); }
+
+    .stock-details {
+      display: none;
+      margin-top: 12px;
+      padding-top: 12px;
+      border-top: 1px solid rgba(255, 255, 255, 0.1);
+      font-size: 0.8rem;
+      animation: fadeIn 0.25s ease-out;
+    }
+
+    .stock-details.open { display: block; }
+
+    .expanded-chart-box {
+      background: rgba(0, 0, 0, 0.35);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 12px;
+      padding: 10px 12px;
+      margin-bottom: 10px;
+    }
+
+    .chart-header {
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.72rem;
+      color: var(--muted);
+      margin-bottom: 6px;
+    }
+
+    .full-chart-svg {
+      width: 100%;
+      height: 90px;
+      display: block;
+      overflow: visible;
+    }
+
+    .detail-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+      margin-bottom: 10px;
+    }
+
+    .detail-cell {
+      background: rgba(0, 0, 0, 0.25);
+      padding: 6px 8px;
+      border-radius: 8px;
+    }
+    .detail-cell-label { font-size: 0.68rem; color: var(--muted); margin-bottom: 2px; }
+    .detail-cell-val { font-size: 0.82rem; font-weight: 700; font-variant-numeric: tabular-nums; }
+
+    .ai-reason-box {
+      background: rgba(99, 102, 241, 0.1);
+      border: 1px solid rgba(99, 102, 241, 0.25);
+      border-radius: 8px;
+      padding: 8px 10px;
+      font-size: 0.76rem;
+      color: #cbd5e1;
+      line-height: 1.45;
+      margin-top: 8px;
+    }
+
+    .event-alert-box {
+      background: rgba(239, 68, 68, 0.12);
+      border: 1px solid rgba(239, 68, 68, 0.3);
+      border-radius: 8px;
+      padding: 8px 10px;
+      font-size: 0.74rem;
+      color: #fca5a5;
+      margin-top: 6px;
+    }
+
+    /* Bottom Floating Action Bar */
+    .bottom-bar {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      background: rgba(7, 10, 18, 0.94);
+      backdrop-filter: blur(16px);
+      border-top: 1px solid var(--card-border);
+      padding: 10px 16px calc(10px + env(safe-area-inset-bottom));
+      display: flex;
+      gap: 8px;
+      z-index: 100;
+    }
+
+    @media (min-width: 600px) {
+      .bottom-bar {
+        max-width: 580px;
+        left: 50%;
+        transform: translateX(-50%);
+        border-radius: 20px 20px 0 0;
+        border-left: 1px solid var(--card-border);
+        border-right: 1px solid var(--card-border);
+      }
+    }
+
+    .btn-mobile-action {
+      flex: 1;
+      background: linear-gradient(135deg, #6366f1, #38bdf8);
+      color: #fff;
+      font-weight: 800;
+      font-size: 0.88rem;
+      border: none;
+      padding: 11px;
+      border-radius: var(--radius-md);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      box-shadow: 0 4px 16px rgba(99, 102, 241, 0.35);
+      transition: all 0.2s;
+    }
+    .btn-mobile-action:hover {
+      opacity: 0.92;
+      transform: translateY(-1px);
+    }
+
+    .btn-mobile-secondary {
+      background: rgba(255, 255, 255, 0.08);
+      color: var(--text);
+      font-weight: 600;
+      font-size: 0.82rem;
+      border: 1px solid var(--card-border);
+      padding: 11px 12px;
+      border-radius: var(--radius-md);
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 4px;
+      white-space: nowrap;
+      transition: all 0.2s;
+    }
+    .btn-mobile-secondary:hover {
+      background: rgba(255, 255, 255, 0.14);
+    }
+
+    /* Modals & Onboarding Drawer */
+    .modal-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0, 0, 0, 0.78);
+      backdrop-filter: blur(10px);
+      z-index: 200;
+      display: none;
+      align-items: flex-end;
+      justify-content: center;
+    }
+
+    @media (min-width: 600px) {
+      .modal-overlay {
+        align-items: center;
+        padding: 20px;
+      }
+    }
+
+    .modal-overlay.active { display: flex; }
+
+    .modal-drawer {
+      background: #111728;
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      border-radius: 24px 24px 0 0;
+      width: 100%;
+      max-width: 520px;
+      max-height: 85vh;
+      overflow-y: auto;
+      padding: 22px 18px calc(24px + env(safe-area-inset-bottom));
+      animation: slideUp 0.28s ease-out;
+    }
+
+    @media (min-width: 600px) {
+      .modal-drawer {
+        border-radius: 24px;
+        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.7);
+        padding: 24px;
+      }
+    }
+
+    @keyframes slideUp {
+      from { transform: translateY(100%); }
+      to { transform: translateY(0); }
+    }
+
+    .modal-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 14px;
+    }
+
+    .modal-title {
+      font-size: 1.15rem;
+      font-weight: 800;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    /* Segmented Tabs inside Record Modal */
+    .record-mode-tabs {
+      display: flex;
+      background: rgba(255, 255, 255, 0.06);
+      border-radius: 12px;
+      padding: 3px;
+      margin-bottom: 14px;
+      gap: 4px;
+    }
+
+    .record-tab-btn {
+      flex: 1;
+      border: none;
+      background: transparent;
+      color: var(--muted);
+      padding: 8px 4px;
+      border-radius: 10px;
+      font-size: 0.82rem;
+      font-weight: 700;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      transition: all 0.2s;
+    }
+
+    .record-tab-btn.active {
+      background: #1e293b;
+      color: #fff;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+    }
+
+    /* Manual Trade Form Styling */
+    .form-group {
+      margin-bottom: 12px;
+    }
+
+    .form-label {
+      font-size: 0.75rem;
+      color: var(--muted);
+      margin-bottom: 5px;
+      display: block;
+      font-weight: 600;
+    }
+
+    .form-input {
+      width: 100%;
+      background: rgba(0, 0, 0, 0.4);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      border-radius: 10px;
+      padding: 10px 12px;
+      color: #fff;
+      font-size: 0.92rem;
+      font-family: inherit;
+    }
+    .form-input:focus {
+      outline: none;
+      border-color: var(--blue);
+      background: rgba(0, 0, 0, 0.6);
+    }
+
+    .form-row-2 {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+
+    .side-toggle-group {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+      margin-bottom: 12px;
+    }
+
+    .side-btn {
+      padding: 9px;
+      border-radius: 10px;
+      border: 1px solid transparent;
+      background: rgba(255, 255, 255, 0.05);
+      color: var(--muted);
+      font-weight: 800;
+      font-size: 0.85rem;
+      cursor: pointer;
+    }
+    .side-btn.active-buy {
+      background: var(--red-bg);
+      color: var(--red);
+      border-color: var(--red);
+    }
+    .side-btn.active-sell {
+      background: var(--green-bg);
+      color: var(--green);
+      border-color: var(--green);
+    }
+
+    .lot-quick-pills {
+      display: flex;
+      gap: 6px;
+      margin-top: 6px;
+    }
+
+    .lot-pill {
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      color: var(--muted);
+      padding: 4px 8px;
+      border-radius: 6px;
+      font-size: 0.72rem;
+      cursor: pointer;
+    }
+    .lot-pill:hover {
+      color: var(--blue);
+      border-color: var(--blue);
+    }
+
+    /* Onboarding Cards */
+    .guide-step-card {
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 14px;
+      padding: 12px;
+      margin-bottom: 10px;
+      display: flex;
+      gap: 12px;
+      align-items: flex-start;
+    }
+
+    .guide-icon-badge {
+      width: 38px;
+      height: 38px;
+      border-radius: 10px;
+      background: linear-gradient(135deg, rgba(99, 102, 241, 0.3), rgba(56, 189, 248, 0.3));
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.2rem;
+      flex-shrink: 0;
+    }
+
+    .guide-text-group h4 {
+      font-size: 0.92rem;
+      font-weight: 800;
+      margin-bottom: 3px;
+      color: #fff;
+    }
+
+    .guide-text-group p {
+      font-size: 0.78rem;
+      color: var(--muted);
+      line-height: 1.45;
+    }
+
+    .ocr-drop-area {
+      border: 2px dashed rgba(99, 102, 241, 0.4);
+      background: rgba(99, 102, 241, 0.06);
+      border-radius: 16px;
+      padding: 20px 16px;
+      text-align: center;
+      cursor: pointer;
+      margin-bottom: 12px;
+      transition: all 0.2s;
+    }
+
+    .ocr-drop-area:hover {
+      border-color: var(--blue);
+      background: rgba(56, 189, 248, 0.1);
+    }
+
+    .ocr-preview-img {
+      max-height: 120px;
+      border-radius: 8px;
+      display: none;
+      margin: 0 auto 10px;
+    }
+
+    .ocr-result-card {
+      display: none;
+      background: rgba(0, 0, 0, 0.4);
+      border: 1px solid rgba(34, 197, 94, 0.4);
+      border-radius: 12px;
+      padding: 12px;
+      margin-bottom: 14px;
+      animation: fadeIn 0.3s;
+    }
+
+    .sample-pill-group {
+      display: flex;
+      gap: 6px;
+      overflow-x: auto;
+      padding: 2px 0 6px;
+      scrollbar-width: none;
+    }
+    .sample-pill-group::-webkit-scrollbar { display: none; }
+
+    .sample-pill-btn {
+      background: rgba(255, 255, 255, 0.07);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      color: #cbd5e1;
+      padding: 6px 10px;
+      border-radius: 16px;
+      font-size: 0.74rem;
+      font-weight: 600;
+      white-space: nowrap;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      transition: all 0.2s;
+    }
+
+    .sample-pill-btn:hover {
+      background: var(--blue-bg);
+      color: var(--blue);
+      border-color: var(--blue);
+    }
+
+    .demo-exit-bar {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+      justify-content: space-between;
+      padding: 10px 12px;
+      margin-bottom: 10px;
+      border-radius: 12px;
+      background: rgba(99, 102, 241, 0.16);
+      border: 1px solid rgba(129, 140, 248, 0.4);
+      color: #c7d2fe;
+      font-size: 0.78rem;
+      line-height: 1.4;
+    }
+    .demo-exit-bar span {
+      display: block;
+      margin-top: 2px;
+      color: var(--muted);
+      font-size: 0.72rem;
+    }
+    .demo-exit-btn {
+      flex-shrink: 0;
+      border: 0;
+      border-radius: 999px;
+      padding: 8px 12px;
+      background: #fff;
+      color: #1e1b4b;
+      font-weight: 800;
+      font-size: 0.75rem;
+      cursor: pointer;
+    }
+
+    .mgmt-btn-grid {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      margin-top: 14px;
+    }
+
+    .mgmt-btn {
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      color: #fff;
+      padding: 12px 14px;
+      border-radius: 12px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      text-align: left;
+      transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    .mgmt-btn:hover {
+      background: rgba(255, 255, 255, 0.1);
+      border-color: rgba(255, 255, 255, 0.25);
+      transform: translateY(-1px);
+    }
+
+    .mgmt-btn-icon {
+      font-size: 1.4rem;
+      line-height: 1;
+      flex-shrink: 0;
+    }
+
+    .mgmt-btn-text {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+
+    .mgmt-btn-text strong {
+      font-size: 0.88rem;
+      font-weight: 700;
+      color: #fff;
+    }
+
+    .mgmt-btn-text span {
+      font-size: 0.72rem;
+      color: var(--muted);
+      line-height: 1.3;
+    }
+
+    .mgmt-btn-primary {
+      background: linear-gradient(135deg, rgba(16, 185, 129, 0.18), rgba(5, 150, 105, 0.24));
+      border-color: rgba(16, 185, 129, 0.5);
+    }
+
+    .mgmt-btn-primary:hover {
+      background: linear-gradient(135deg, rgba(16, 185, 129, 0.28), rgba(5, 150, 105, 0.35));
+      border-color: rgba(16, 185, 129, 0.8);
+    }
+
+    .mgmt-btn-danger {
+      background: rgba(239, 68, 68, 0.08);
+      border-color: rgba(239, 68, 68, 0.3);
+    }
+
+    .mgmt-btn-danger:hover {
+      background: rgba(239, 68, 68, 0.18);
+      border-color: rgba(239, 68, 68, 0.6);
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(-4px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* Empty / loading / error states */
+    .state-panel {
+      text-align: center;
+      padding: 36px 18px;
+      background: rgba(255,255,255,0.03);
+      border: 1px dashed rgba(255,255,255,0.12);
+      border-radius: var(--radius-md);
+      margin-top: 6px;
+      animation: fadeIn 0.3s;
+    }
+    .state-panel h3 {
+      font-size: 1.05rem;
+      font-weight: 800;
+      margin: 10px 0 6px;
+    }
+    .state-panel p {
+      font-size: 0.8rem;
+      color: var(--muted);
+      line-height: 1.5;
+      margin-bottom: 14px;
+    }
+    .state-cta {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      background: linear-gradient(135deg, #6366f1, #38bdf8);
+      color: #fff;
+      border: none;
+      border-radius: 12px;
+      padding: 12px 18px;
+      font-size: 0.92rem;
+      font-weight: 800;
+      cursor: pointer;
+      box-shadow: 0 8px 24px rgba(99,102,241,0.35);
+    }
+    .state-cta.secondary {
+      background: rgba(255,255,255,0.08);
+      border: 1px solid rgba(255,255,255,0.12);
+      box-shadow: none;
+      margin-top: 8px;
+    }
+    .state-spinner {
+      width: 28px; height: 28px;
+      border: 3px solid rgba(56,189,248,0.2);
+      border-top-color: var(--blue);
+      border-radius: 50%;
+      margin: 0 auto 8px;
+      animation: spin 0.8s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* AI Brief action strip — kept above filter chips for discoverability */
+    .ai-brief-strip {
+      display: none;
+      flex-direction: column;
+      gap: 6px;
+      margin: 0 0 12px;
+      padding: 10px;
+      border-radius: 14px;
+      background: rgba(99,102,241,0.12);
+      border: 1px solid rgba(129,140,248,0.35);
+      align-items: stretch;
+    }
+    .ai-brief-strip.visible { display: flex; }
+    .ai-brief-strip-label {
+      font-size: 0.7rem;
+      font-weight: 700;
+      color: #a5b4fc;
+      letter-spacing: 0.02em;
+    }
+    .ai-brief-strip-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      align-items: stretch;
+    }
+    .btn-ai-brief {
+      flex: 1;
+      background: linear-gradient(135deg, rgba(99,102,241,0.95), rgba(56,189,248,0.9));
+      border: 1px solid rgba(255,255,255,0.18);
+      color: #fff;
+      border-radius: 12px;
+      padding: 10px 12px;
+      font-weight: 800;
+      font-size: 0.86rem;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+    }
+    .btn-ai-brief:disabled { opacity: 0.65; cursor: wait; }
+    .btn-judge-tour {
+      background: rgba(255,255,255,0.07);
+      border: 1px solid rgba(255,255,255,0.14);
+      color: #e2e8f0;
+      border-radius: 12px;
+      padding: 10px 12px;
+      font-weight: 700;
+      font-size: 0.78rem;
+      cursor: pointer;
+      white-space: nowrap;
+    }
+
+    /* OCR progress polish */
+    .ocr-progress {
+      display: none;
+      margin-bottom: 12px;
+      padding: 12px;
+      border-radius: 12px;
+      background: rgba(56,189,248,0.08);
+      border: 1px solid rgba(56,189,248,0.25);
+    }
+    .ocr-progress.active { display: block; animation: fadeIn 0.25s; }
+    .ocr-progress-bar {
+      height: 6px;
+      border-radius: 999px;
+      background: rgba(255,255,255,0.08);
+      overflow: hidden;
+      margin-top: 8px;
+    }
+    .ocr-progress-bar > span {
+      display: block;
+      height: 100%;
+      width: 30%;
+      background: linear-gradient(90deg, #38bdf8, #6366f1, #38bdf8);
+      background-size: 200% 100%;
+      animation: progressSlide 1.1s ease-in-out infinite;
+      border-radius: 999px;
+    }
+    @keyframes progressSlide {
+      0% { transform: translateX(-40%); }
+      100% { transform: translateX(280%); }
+    }
+    .sample-pill-btn.busy {
+      opacity: 0.55;
+      pointer-events: none;
+    }
+    .sample-pill-btn.done {
+      border-color: var(--green);
+      color: #86efac;
+      background: rgba(34,197,94,0.12);
+    }
+    .ocr-confirm-toast {
+      display: none;
+      margin-top: 8px;
+      font-size: 0.75rem;
+      color: #86efac;
+      font-weight: 700;
+    }
+
+    /* AI Brief modal content */
+    .brief-block {
+      background: rgba(255,255,255,0.04);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 12px;
+      padding: 12px;
+      margin-bottom: 10px;
+    }
+    .brief-block h4 {
+      font-size: 0.82rem;
+      color: var(--blue);
+      margin-bottom: 6px;
+      font-weight: 800;
+    }
+    .brief-block p, .brief-item {
+      font-size: 0.8rem;
+      color: #e2e8f0;
+      line-height: 1.5;
+    }
+    .brief-item {
+      padding: 6px 0;
+      border-bottom: 1px solid rgba(255,255,255,0.06);
+    }
+    .brief-item:last-child { border-bottom: none; }
+    .brief-item strong { color: #fff; }
+    .brief-disclaimer {
+      font-size: 0.7rem;
+      color: var(--muted);
+      line-height: 1.4;
+      margin-top: 4px;
+    }
+    .brief-source {
+      font-size: 0.68rem;
+      color: var(--muted);
+      margin-bottom: 8px;
+    }
+    .ai-snippet-box {
+      margin-top: 8px;
+      padding: 8px 10px;
+      border-radius: 10px;
+      background: rgba(99,102,241,0.12);
+      border: 1px solid rgba(99,102,241,0.28);
+      font-size: 0.76rem;
+      color: #c7d2fe;
+      line-height: 1.45;
+    }
+
+    /* Judge tour overlay */
+    .tour-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      z-index: 9999;
+      background: rgba(3,6,15,0.72);
+      backdrop-filter: blur(3px);
+      align-items: center;
+      justify-content: center;
+      padding: 18px;
+    }
+    .tour-overlay.active { display: flex; }
+    .tour-card {
+      width: min(420px, 100%);
+      background: rgba(15,20,35,0.96);
+      border: 1px solid rgba(255,255,255,0.14);
+      border-radius: 18px;
+      padding: 16px;
+      box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+      animation: fadeIn 0.25s;
+    }
+    .tour-card h3 {
+      font-size: 1.05rem;
+      font-weight: 800;
+      margin-bottom: 10px;
+    }
+    .tour-step {
+      display: flex;
+      gap: 10px;
+      padding: 10px;
+      border-radius: 12px;
+      margin-bottom: 8px;
+      background: rgba(255,255,255,0.04);
+      border: 1px solid transparent;
+      transition: border-color 0.2s, background 0.2s;
+    }
+    .tour-step.active {
+      border-color: rgba(56,189,248,0.55);
+      background: rgba(56,189,248,0.12);
+    }
+    .tour-step-num {
+      width: 26px; height: 26px;
+      border-radius: 8px;
+      background: linear-gradient(135deg,#6366f1,#38bdf8);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 0.78rem; font-weight: 800; flex-shrink: 0;
+    }
+    .tour-step strong { display: block; font-size: 0.86rem; margin-bottom: 2px; }
+    .tour-step span { font-size: 0.74rem; color: var(--muted); line-height: 1.4; }
+    .tour-actions { display: flex; gap: 8px; margin-top: 12px; }
+    .tour-actions button { flex: 1; }
+
+    .holdings-focus-pulse {
+      animation: holdingsPulse 1.2s ease-out 2;
+    }
+    @keyframes holdingsPulse {
+      0% { box-shadow: 0 0 0 0 rgba(56,189,248,0.45); }
+      70% { box-shadow: 0 0 0 12px rgba(56,189,248,0); }
+      100% { box-shadow: 0 0 0 0 rgba(56,189,248,0); }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Hidden File Input for JSON Backup Import -->
+  <input type="file" id="jsonFileInput" accept="application/json,.json" style="display:none;" />
+
+  <!-- Centered App Viewport for Desktop & Mobile -->
+  <div class="app-viewport">
+
+    <!-- Top App Bar -->
+    <header class="app-bar">
+      <div class="app-title-group">
+        <span class="app-badge" id="accountBadge" onclick="openMgmtModal()" title="點擊切換/管理帳本">📁 帳本管理</span>
+        <h1 class="app-title">StockPilot AI</h1>
+      </div>
+      <div class="top-actions">
+        <button class="icon-btn brief-header-btn" id="btnAiBriefHeader" onclick="requestAiBrief()" title="AI 戰情簡報">✨ 戰情簡報</button>
+        <button class="icon-btn magi-header-btn" id="btnMagiHeader" onclick="requestMagiVote()" title="MAGI 三腦多數決">🧠 MAGI 決議</button>
+        <button class="icon-btn" id="btnHelp" title="新手操作導覽 (30秒上手)">❓</button>
+        <button class="icon-btn" id="btnPrivacy" title="防偷窺模式 (切換隱藏金額)">
+          <svg id="eyeIcon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+        </button>
+        <button class="icon-btn" id="btnRefresh" title="手動更新報價">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
+        </button>
+      </div>
+    </header>
+
+    <!-- Total Assets Card -->
+    <section class="asset-card">
+      <div class="asset-label">
+        <span id="assetSourceLabel">持股總市值估值</span>
+        <span class="privacy-badge" id="privacyStatusLabel">🔒 100% 本地隔離</span>
+      </div>
+      <div class="asset-val" id="totalMarketVal">NT$ --</div>
+      <div class="asset-metrics">
+        <div class="metric-box">
+          <span class="metric-sub-label">未實現損益</span>
+          <span class="metric-sub-val" id="totalUnrealPnl">--</span>
+        </div>
+        <div class="metric-box">
+          <span class="metric-sub-label">已實現損益 (FIFO)</span>
+          <span class="metric-sub-val" id="totalRealizedPnl">--</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- Market Session Bar -->
+    <div class="market-status-bar">
+      <div>
+        <span class="pulse-dot" id="marketDot"></span>
+        <span id="marketSessionText">連線中...</span>
+      </div>
+      <span id="lastUpdatedText">--</span>
+    </div>
+
+    <!-- AI Brief + Quick Tour strip (above filter chips; shown after holdings load) -->
+    <div class="ai-brief-strip" id="aiBriefStrip">
+      <div class="ai-brief-strip-label">✨ 戰情工具（評審常找這裡）</div>
+      <div class="ai-brief-strip-actions">
+        <button class="btn-ai-brief" id="btnAiBrief" onclick="requestAiBrief()">✨ 戰情簡報</button>
+        <button class="btn-magi" id="btnMagi" onclick="requestMagiVote()">🧠 MAGI 決議</button>
+        <button class="btn-judge-tour" id="btnJudgeTour" onclick="openJudgeTour()">✨ 功能快速導覽</button>
+      </div>
+    </div>
+
+    <!-- Filter Tabs -->
+    <div class="filter-tabs" id="filterTabs">
+      <button class="tab-pill active" data-filter="all">全部 (<span id="countAll">0</span>)</button>
+      <button class="tab-pill" data-filter="review">🚨 需檢視 (<span id="countReview">0</span>)</button>
+      <button class="tab-pill" data-filter="lock">💰 大賺續抱 (<span id="countLock">0</span>)</button>
+      <button class="tab-pill" data-filter="hold">🟢 續抱 (<span id="countHold">0</span>)</button>
+    </div>
+
+    <!-- Holdings List -->
+    <main class="stock-list" id="stockListContainer">
+      <div style="text-align: center; padding: 40px 0; color: var(--muted);">正在載入持股與即時報價...</div>
+    </main>
+
+    <!-- Bottom Floating Action Bar -->
+    <div class="bottom-bar">
+      <button class="btn-mobile-secondary" onclick="openMgmtModal()">
+        📁 帳本管理
+      </button>
+      <button class="btn-mobile-action" id="btnOpenRecord">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>
+        登錄買賣交易
+      </button>
+    </div>
+
+  </div> <!-- End App Viewport -->
+
+  <!-- Unified Trade Record Modal Drawer (AI Screenshot + Manual Entry) -->
+  <div class="modal-overlay" id="recordModal">
+    <div class="modal-drawer">
+      <div class="modal-header">
+        <div class="modal-title">
+          <span>⚡ 登錄股票交易</span>
+        </div>
+        <button class="icon-btn" onclick="closeRecordModal()">✕</button>
+      </div>
+
+      <!-- Segmented Control: AI Vision vs Manual Entry -->
+      <div class="record-mode-tabs">
+        <button class="record-tab-btn active" id="tabAI" onclick="switchRecordMode('ai')">
+          <span>📷 AI 截圖記帳</span>
+        </button>
+        <button class="record-tab-btn" id="tabManual" onclick="switchRecordMode('manual')">
+          <span>✏️ 手動快速輸入</span>
+        </button>
+      </div>
+
+      <!-- View 1: AI Screenshot OCR View -->
+      <div id="aiRecordView">
+        <div class="ocr-drop-area" id="ocrDropArea">
+          <input type="file" id="ocrFileInput" accept="image/*" style="display:none;" />
+          <img id="ocrPreviewImg" class="ocr-preview-img" alt="截圖預覽" />
+          <div id="ocrPromptText">
+            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="var(--blue)" stroke-width="2" style="margin-bottom:6px;"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+            <div style="font-size:0.9rem; font-weight:700; margin-bottom:4px;">拍照或上傳券商下單截圖</div>
+            <div style="font-size:0.75rem; color:var(--muted);">支援國泰、富邦、中信、元大、永豐等券商 APP</div>
+          </div>
+        </div>
+
+        <div class="ocr-progress" id="ocrProgress">
+          <div style="font-size:0.82rem; font-weight:800; color:var(--blue);" id="ocrProgressLabel">✨ Gemini 辨識中…</div>
+          <div style="font-size:0.72rem; color:var(--muted); margin-top:4px;" id="ocrProgressHint">解析券商畫面欄位（代號／價格／股數）</div>
+          <div class="ocr-progress-bar"><span></span></div>
+        </div>
+
+        <!-- Quick Preset Sample Screenshots：僅示範模式顯示，避免寫進私人帳本 -->
+        <div id="demoSampleBox" style="display:none; margin-bottom:12px; padding:8px 10px; background:rgba(255,255,255,0.04); border-radius:10px; border:1px solid rgba(255,255,255,0.06);">
+          <div style="font-size:0.72rem; color:var(--muted); margin-bottom:6px;">💡 評審示範單據（只寫入示範模式，不會進你的帳本）：</div>
+          <div class="sample-pill-group">
+            <button class="sample-pill-btn" id="samplePill2330" onclick="testSampleOCR('2330')">📸 富邦·台積電買單</button>
+            <button class="sample-pill-btn" id="samplePill2454" onclick="testSampleOCR('2454')">📸 國泰·聯發科買單</button>
+            <button class="sample-pill-btn" id="samplePill2308" onclick="testSampleOCR('2308')">📸 中信·台達電買單</button>
+          </div>
+        </div>
+
+        <div class="ocr-result-card" id="ocrResultCard">
+          <div style="font-size:0.78rem; color:var(--green); font-weight:800; margin-bottom:6px;">✨ Gemini 辨識完成：</div>
+          <div style="display:flex; justify-content:space-between; font-weight:800; font-size:1.05rem; margin-bottom:4px;">
+            <span id="ocrTradeTitle">2330 台積電 · 買進</span>
+            <span id="ocrTradePrice" style="color:var(--red);">$955 (1,000股)</span>
+          </div>
+          <div style="font-size:0.75rem; color:var(--muted);" id="ocrTradeBroker">手續費: $28 | 富邦證券 | 2026-09-03</div>
+          <button class="btn-mobile-action" style="width:100%; margin-top:10px;" id="btnConfirmOcr" onclick="confirmTradeEntry()">
+            ✓ 確認寫入記帳本 (更新 FIFO 損益)
+          </button>
+          <div class="ocr-confirm-toast" id="ocrConfirmToast">已準備確認 → 寫入本機私人帳本（伺服器不儲存）</div>
+        </div>
+      </div>
+
+      <!-- View 2: Manual Trade Input Form -->
+      <div id="manualRecordView" style="display:none;">
+        <div class="side-toggle-group">
+          <button type="button" class="side-btn active-buy" id="btnManualBuy" onclick="setManualSide('buy')">🔴 買進 (Buy)</button>
+          <button type="button" class="side-btn" id="btnManualSell" onclick="setManualSide('sell')">🟢 賣出 (Sell)</button>
+        </div>
+
+        <div class="form-row-2">
+          <div class="form-group">
+            <label class="form-label">股票代號</label>
+            <input type="text" class="form-input" id="inpSymbol" placeholder="如 2330" oninput="autoFillStockName()" />
+          </div>
+          <div class="form-group">
+            <label class="form-label">股票名稱</label>
+            <input type="text" class="form-input" id="inpName" placeholder="如 台積電" />
+          </div>
+        </div>
+
+        <div class="form-row-2">
+          <div class="form-group">
+            <label class="form-label">成交價格 ($)</label>
+            <input type="number" step="0.01" class="form-input" id="inpPrice" placeholder="如 955.0" />
+          </div>
+          <div class="form-group">
+            <label class="form-label">成交股數</label>
+            <input type="number" class="form-input" id="inpQty" placeholder="如 1000" />
+            <div class="lot-quick-pills">
+              <span class="lot-pill" onclick="setQuickQty(100)">+100股</span>
+              <span class="lot-pill" onclick="setQuickQty(500)">+500股</span>
+              <span class="lot-pill" onclick="setQuickQty(1000)">+1張</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="form-row-2">
+          <div class="form-group">
+            <label class="form-label">手續費 ($)</label>
+            <input type="number" class="form-input" id="inpFee" placeholder="0" value="0" />
+          </div>
+          <div class="form-group">
+            <label class="form-label">交易日期</label>
+            <input type="date" class="form-input" id="inpDate" />
+          </div>
+        </div>
+
+        <button class="btn-mobile-action" style="width:100%; margin-top:8px;" onclick="saveManualTrade()">
+          ➕ 儲存交易紀錄 (立即計算損益)
+        </button>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Onboarding Guide Modal Drawer -->
+  <div class="modal-overlay" id="guideModal">
+    <div class="modal-drawer">
+      <div class="modal-header">
+        <div class="modal-title">
+          <span>✨ 歡迎使用 StockPilot AI</span>
+        </div>
+        <button class="icon-btn" onclick="closeGuideModal(true)">✕</button>
+      </div>
+
+      <div class="guide-step-card">
+        <div class="guide-icon-badge">📈</div>
+        <div class="guide-text-group">
+          <h4>1. 點擊卡片看 6M 平滑走勢</h4>
+          <p>點選任意股票卡片，展開近 6 個月歷史高低點曲線與重大事件 AI 避雷建議。</p>
+        </div>
+      </div>
+
+      <div class="guide-step-card">
+        <div class="guide-icon-badge">📷</div>
+        <div class="guide-text-group">
+          <h4>2. 拍券商截圖或手動快速記帳</h4>
+          <p>點擊底部「登錄買賣交易」，支援拍照截圖 AI 辨識，也可以純手動精確輸入！</p>
+        </div>
+      </div>
+
+      <div class="guide-step-card">
+        <div class="guide-icon-badge">👁️</div>
+        <div class="guide-text-group">
+          <h4>3. 公共場合一鍵防偷窺</h4>
+          <p>點擊右上角眼睛圖標，瞬間遮蔽資產金額 (NT$ ••••••)，捷運看盤超安心。</p>
+        </div>
+      </div>
+
+      <div class="guide-step-card">
+        <div class="guide-icon-badge">🔒</div>
+        <div class="guide-text-group">
+          <h4>4. 100% 隱私 + AI 戰情／MAGI</h4>
+          <p>預設是空白私人帳本。示範 4 檔給評審體驗用，跟你的資料完全分開。載入後可點「戰情簡報」或「MAGI 三腦多數決」。</p>
+        </div>
+      </div>
+
+      <button class="btn-mobile-action" style="width:100%; margin-top:8px;" onclick="closeGuideModal(true); exitDemoToEmptyLedger();">
+        開始空白帳本
+      </button>
+      <button class="btn-mobile-secondary" style="width:100%; margin-top:8px;" onclick="closeGuideModal(true); loadJudgeDemoHoldings();">
+        評審／體驗：載入示範 4 檔
+      </button>
+    </div>
+  </div>
+
+  <!-- Account Management Modal Drawer -->
+  <div class="modal-overlay" id="mgmtModal">
+    <div class="modal-drawer">
+      <div class="modal-header">
+        <div class="modal-title">
+          <span>📁 私人帳本管理中心</span>
+        </div>
+        <button class="icon-btn" onclick="closeMgmtModal()">✕</button>
+      </div>
+
+      <p style="font-size:0.8rem; color:var(--muted); line-height:1.45; margin-bottom:12px;">
+        🔒 <b>Local-First</b>：示範 4 檔不是你的持股，可一鍵關閉。私人帳本只存在這台裝置。
+      </p>
+
+      <div class="mgmt-btn-grid" id="mgmtBtnGrid">
+        <!-- Dynamically rendered by renderMgmtModalButtons() -->
+      </div>
+    </div>
+  </div>
+
+
+  <!-- AI Battle Brief Modal -->
+  <div class="modal-overlay" id="aiBriefModal">
+    <div class="modal-drawer">
+      <div class="modal-header">
+        <div class="modal-title"><span>✨ AI 戰情簡報</span></div>
+        <button class="icon-btn" onclick="closeAiBriefModal()">✕</button>
+      </div>
+      <div class="brief-source" id="aiBriefSource">來源：—</div>
+      <div id="aiBriefBody">
+        <div class="state-panel" style="border:none; padding:20px 8px;">
+          <div class="state-spinner"></div>
+          <p>Gemini 正在彙整持股戰情…</p>
+        </div>
+      </div>
+      <p class="brief-disclaimer" id="aiBriefDisclaimer"></p>
+    </div>
+  </div>
+
+  <!-- 2-minute Quick Tour Overlay -->
+  <div class="tour-overlay" id="judgeTourOverlay" onclick="if(event.target===this)closeJudgeTour()">
+    <div class="tour-card" role="dialog" aria-modal="true">
+      <h3>✨ 2 分鐘功能快速導覽</h3>
+      <div class="tour-step" data-tour-step="1">
+        <div class="tour-step-num">1</div>
+        <div>
+          <strong>載入體驗示範持股</strong>
+          <span>點「載入體驗示範持股」或空狀態按鈕，立刻看到台積電／台達電／0050／欣興。</span>
+        </div>
+      </div>
+      <div class="tour-step" data-tour-step="2">
+        <div class="tour-step-num">2</div>
+        <div>
+          <strong>展開卡片看 AI 建議</strong>
+          <span>點持股卡片展開 6M 走勢、FIFO 成本與規則式 AI 標籤。</span>
+        </div>
+      </div>
+      <div class="tour-step" data-tour-step="3">
+        <div class="tour-step-num">3</div>
+        <div>
+          <strong>示範單據 OCR</strong>
+          <span>底部「登錄買賣」→ 點示範截圖單據 → 進度 → 結果 → 確認寫入（本機）。</span>
+        </div>
+      </div>
+      <div class="tour-step" data-tour-step="4">
+        <div class="tour-step-num">4</div>
+        <div>
+          <strong>AI 戰情／MAGI 三腦多數決 + 防偷窺</strong>
+          <span>按「AI 戰情簡報」或「🧠 MAGI 決議」看三腦多數決；右上眼睛一鍵隱藏金額。Local-First。</span>
+        </div>
+      </div>
+      <div class="tour-actions">
+        <button class="btn-mobile-secondary" onclick="closeJudgeTour()">稍後</button>
+        <button class="btn-mobile-action" onclick="runJudgeTourAction()">🚀 開始：載入示範</button>
+      </div>
+    </div>
+  </div>
+
+  
+  <!-- MAGI three-brain vote modal -->
+  <div class="modal-overlay" id="magiModal">
+    <div class="modal-sheet" style="max-height:88vh;">
+      <div class="modal-header">
+        <div class="modal-title"><span>🧠 MAGI 三腦決議</span></div>
+        <button class="modal-close" onclick="closeMagiModal()">✕</button>
+      </div>
+      <div class="modal-body" id="magiBody" style="overflow:auto;">
+        <div style="color:#94a3b8;font-size:0.85rem;">載入中…</div>
+      </div>
+    </div>
+  </div>
+
+<script>
+    const USER_JOURNAL_STORAGE_KEY = "stockpilot_user_journal_v1";
+    const REAL_JOURNAL_STORAGE_KEY = "stockpilot_user_real_journal_v1";
+    const ACTIVE_MODE_KEY = "stockpilot_active_mode_v1";
+    const DEMO_OPT_IN_KEY = "stockpilot_demo_opt_in_v1";
+    const DEMO_EXTRA_STORAGE_KEY = "stockpilot_demo_extra_trades_v1";
+    const ONBOARDING_SEEN_KEY = "stockpilot_guide_seen_v1";
+
+    function getRealJournal() {
+      try {
+        let raw = localStorage.getItem(REAL_JOURNAL_STORAGE_KEY);
+        if (!raw) {
+          const oldRaw = localStorage.getItem(USER_JOURNAL_STORAGE_KEY);
+          if (oldRaw) {
+            localStorage.setItem(REAL_JOURNAL_STORAGE_KEY, oldRaw);
+            raw = oldRaw;
+          }
+        }
+        if (!raw) return null;
+        const parsed = JSON.parse(raw);
+        const trades = parsed.trades || (Array.isArray(parsed) ? parsed : []);
+        return { ...parsed, trades: Array.isArray(trades) ? trades : [] };
+      } catch (e) {
+        return null;
+      }
+    }
+
+    function getDemoExtraTrades() {
+      try {
+        const raw = localStorage.getItem(DEMO_EXTRA_STORAGE_KEY);
+        if (!raw) return [];
+        const parsed = JSON.parse(raw);
+        return Array.isArray(parsed) ? parsed : (parsed.trades || []);
+      } catch (e) {
+        return [];
+      }
+    }
+
+    function getActiveMode() {
+      const mode = localStorage.getItem(ACTIVE_MODE_KEY);
+      if (mode === 'real' || mode === 'demo') return mode;
+      return 'real';
+    }
+
+    function isRealMode() {
+      return getActiveMode() === 'real';
+    }
+
+    function markDemoOptIn() {
+      localStorage.setItem(DEMO_OPT_IN_KEY, '1');
+      localStorage.setItem(ACTIVE_MODE_KEY, 'demo');
+    }
+
+    function clearDemoOptIn() {
+      localStorage.removeItem(DEMO_OPT_IN_KEY);
+    }
+
+    function migrateLegacyDemoDefault() {
+      const opted = localStorage.getItem(DEMO_OPT_IN_KEY) === '1';
+      if (!opted && localStorage.getItem(ACTIVE_MODE_KEY) === 'demo') {
+        persistEmptyPrivateLedger();
+        localStorage.setItem(ACTIVE_MODE_KEY, 'real');
+      }
+    }
+
+    function syncDemoSampleVisibility() {
+      const box = document.getElementById('demoSampleBox');
+      if (box) box.style.display = isRealMode() ? 'none' : 'block';
+    }
+
+    function persistEmptyPrivateLedger() {
+      const existing = getRealJournal();
+      if (existing && Array.isArray(existing.trades)) return existing;
+      const payload = {
+        version: 1,
+        trades: [],
+        source: "empty-private-ledger",
+        updatedAt: new Date().toISOString()
+      };
+      localStorage.setItem(REAL_JOURNAL_STORAGE_KEY, JSON.stringify(payload));
+      return payload;
+    }
+
+    window.exitDemoToEmptyLedger = function() {
+      persistEmptyPrivateLedger();
+      clearDemoOptIn();
+      localStorage.setItem(ACTIVE_MODE_KEY, 'real');
+      localStorage.removeItem(DEMO_EXTRA_STORAGE_KEY);
+      aiBriefCache = null;
+      aiBriefBySymbol = {};
+      try { closeMgmtModal(); } catch (_) {}
+      try { closeJudgeTour(); } catch (_) {}
+      try { closeGuideModal(true); } catch (_) {}
+      fetchPortfolio(true);
+    };
+
+    const KNOWN_STOCK_NAMES = {
+      "2330": "台積電", "2454": "聯發科", "2308": "台達電", "2312": "金寶",
+      "2383": "台光電", "3037": "欣興", "3260": "威剛", "4958": "臻鼎-KY",
+      "6182": "合晶", "0050": "元大台灣50", "2317": "鴻海", "2382": "廣達"
+    };
+
+    const DEMO_SAMPLES = {
+      "2330": {
+        symbol: "2330", name: "台積電", action: "買進", price: 955.0, qty: 1000,
+        fee: 28, tax: 0, broker: "富邦證券", date: "2026-09-03", notes: "示範體驗：Gemini 截圖解析 (台積電買進 1 張)"
+      },
+      "2454": {
+        symbol: "2454", name: "聯發科", action: "買進", price: 1420.0, qty: 200,
+        fee: 35, tax: 0, broker: "國泰證券", date: "2026-09-03", notes: "示範體驗：Gemini 截圖解析 (聯發科零股 200 股)"
+      },
+      "2308": {
+        symbol: "2308", name: "台達電", action: "買進", price: 1250.0, qty: 500,
+        fee: 25, tax: 0, broker: "中信證券", date: "2026-09-03", notes: "示範體驗：Gemini 截圖解析 (台達電買進 500 股)"
+      }
+    };
+
+    let isPrivacyMode = false;
+    let portfolioData = null;
+    let currentFilter = 'all';
+    let refreshTimer = null;
+    let currentOcrTrade = null;
+    let currentOcrDemoOnly = false;
+    let userTrades = [];
+    let manualSide = 'buy';
+    let isPortfolioLoading = false;
+    let portfolioFetchId = 0;
+    let portfolioError = null;
+    let aiBriefCache = null;
+    let aiBriefBySymbol = {};
+    let judgeTourTimer = null;
+
+    const btnPrivacy = document.getElementById('btnPrivacy');
+    const btnRefresh = document.getElementById('btnRefresh');
+    const btnHelp = document.getElementById('btnHelp');
+    const totalMarketVal = document.getElementById('totalMarketVal');
+    const totalUnrealPnl = document.getElementById('totalUnrealPnl');
+    const totalRealizedPnl = document.getElementById('totalRealizedPnl');
+    const marketSessionText = document.getElementById('marketSessionText');
+    const lastUpdatedText = document.getElementById('lastUpdatedText');
+    const stockListContainer = document.getElementById('stockListContainer');
+    const filterTabs = document.getElementById('filterTabs');
+    const accountBadge = document.getElementById('accountBadge');
+    const jsonFileInput = document.getElementById('jsonFileInput');
+    const mgmtModal = document.getElementById('mgmtModal');
+    const guideModal = document.getElementById('guideModal');
+
+    const btnOpenRecord = document.getElementById('btnOpenRecord');
+    const recordModal = document.getElementById('recordModal');
+    const aiRecordView = document.getElementById('aiRecordView');
+    const manualRecordView = document.getElementById('manualRecordView');
+    const tabAI = document.getElementById('tabAI');
+    const tabManual = document.getElementById('tabManual');
+
+    const ocrDropArea = document.getElementById('ocrDropArea');
+    const ocrFileInput = document.getElementById('ocrFileInput');
+    const ocrPreviewImg = document.getElementById('ocrPreviewImg');
+    const ocrPromptText = document.getElementById('ocrPromptText');
+    const ocrResultCard = document.getElementById('ocrResultCard');
+    const ocrTradeTitle = document.getElementById('ocrTradeTitle');
+    const ocrTradePrice = document.getElementById('ocrTradePrice');
+    const ocrTradeBroker = document.getElementById('ocrTradeBroker');
+
+    // Manual form fields
+    const inpSymbol = document.getElementById('inpSymbol');
+    const inpName = document.getElementById('inpName');
+    const inpPrice = document.getElementById('inpPrice');
+    const inpQty = document.getElementById('inpQty');
+    const inpFee = document.getElementById('inpFee');
+    const inpDate = document.getElementById('inpDate');
+    const btnManualBuy = document.getElementById('btnManualBuy');
+    const btnManualSell = document.getElementById('btnManualSell');
+
+    inpDate.value = new Date().toISOString().slice(0, 10);
+
+    function fmtCurrency(num) {
+      if (num === null || num === undefined || isNaN(num)) return '--';
+      if (isPrivacyMode) return 'NT$ ••••••';
+      return 'NT$ ' + Math.round(num).toLocaleString('en-US');
+    }
+
+    function fmtPnl(num, pct) {
+      if (num === null || num === undefined || isNaN(num)) return '--';
+      const sign = num > 0 ? '+' : '';
+      const pctStr = pct !== null && pct !== undefined ? ` (${sign}${(pct * 100).toFixed(1)}%)` : '';
+      if (isPrivacyMode) return `${sign}${(pct * 100).toFixed(1)}%`;
+      return `${sign}${Math.round(num).toLocaleString('en-US')}${pctStr}`;
+    }
+
+    function getPnlClass(num) {
+      if (!num || num === 0) return 'val-flat';
+      return num > 0 ? 'val-up' : 'val-down';
+    }
+
+    btnPrivacy.addEventListener('click', () => {
+      isPrivacyMode = !isPrivacyMode;
+      btnPrivacy.style.color = isPrivacyMode ? 'var(--blue)' : 'var(--text)';
+      renderUI();
+    });
+
+    btnRefresh.addEventListener('click', () => {
+      btnRefresh.classList.add('rotating');
+      fetchPortfolio(true);
+    });
+
+    btnHelp.addEventListener('click', () => {
+      openGuideModal();
+    });
+
+    filterTabs.addEventListener('click', (e) => {
+      const btn = e.target.closest('.tab-pill');
+      if (!btn) return;
+      document.querySelectorAll('.tab-pill').forEach(el => el.classList.remove('active'));
+      btn.classList.add('active');
+      currentFilter = btn.dataset.filter;
+      renderStockList();
+    });
+
+    function createSparklineSVG(history, isFull = false, isUp = true) {
+      if (!history || !history.closes || history.closes.length < 2) {
+        return `<svg class="${isFull ? 'full-chart-svg' : 'mini-sparkline-svg'}"><text x="50%" y="50%" fill="rgba(255,255,255,0.2)" font-size="10" text-anchor="middle">走勢載入中</text></svg>`;
+      }
+
+      const closes = history.closes;
+      const min = Math.min(...closes);
+      const max = Math.max(...closes);
+      const range = (max - min) || 1;
+      const width = isFull ? 300 : 130;
+      const height = isFull ? 80 : 28;
+      const padding = 4;
+
+      const points = closes.map((val, idx) => {
+        const x = (idx / (closes.length - 1)) * (width - padding * 2) + padding;
+        const y = height - ((val - min) / range) * (height - padding * 2) - padding;
+        return `${x.toFixed(1)},${y.toFixed(1)}`;
+      });
+
+      const pathData = `M ${points.join(' L ')}`;
+      const areaPath = `M ${points[0]} L ${points.join(' L ')} L ${(width - padding)},${height} L ${padding},${height} Z`;
+      const strokeColor = isUp ? '#ef4444' : '#22c55e';
+      const gradId = `grad-${Math.random().toString(36).substr(2, 9)}`;
+
+      return `
+        <svg viewBox="0 0 ${width} ${height}" class="${isFull ? 'full-chart-svg' : 'mini-sparkline-svg'}" preserveAspectRatio="none">
+          <defs>
+            <linearGradient id="${gradId}" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stop-color="${strokeColor}" stop-opacity="0.35" />
+              <stop offset="100%" stop-color="${strokeColor}" stop-opacity="0.0" />
+            </linearGradient>
+          </defs>
+          <path d="${areaPath}" fill="url(#${gradId})" />
+          <path d="${pathData}" fill="none" stroke="${strokeColor}" stroke-width="${isFull ? '2.5' : '1.8'}" stroke-linecap="round" stroke-linejoin="round" />
+        </svg>
+      `;
+    }
+
+    // Client-side FIFO calculation
+    function computeClientFIFO(trades, liveQuotesMap = {}) {
+      const sorted = [...trades].sort((a, b) => (a.date || '').localeCompare(b.date || ''));
+      const lots = {};
+      const realized = [];
+
+      for (const t of sorted) {
+        const sym = String(t.symbol || '').trim().toUpperCase();
+        if (!lots[sym]) lots[sym] = [];
+        const fee = Number(t.fee) || 0;
+        const tax = Number(t.tax) || 0;
+        const qty = Number(t.qty) || 0;
+        const price = Number(t.price) || 0;
+
+        if (t.type === 'buy' || t.side === 'buy' || t.action === '買進') {
+          lots[sym].push({ qty, cost: qty * price + fee });
+          continue;
+        }
+
+        // Sell
+        let remain = qty;
+        let matchedCost = 0;
+        let matchedQty = 0;
+        while (remain > 1e-12 && lots[sym].length) {
+          const lot = lots[sym][0];
+          const take = Math.min(lot.qty, remain);
+          const unit = lot.cost / lot.qty;
+          matchedCost += unit * take;
+          matchedQty += take;
+          lot.qty -= take;
+          lot.cost -= unit * take;
+          remain -= take;
+          if (lot.qty <= 1e-12) lots[sym].shift();
+        }
+        if (matchedQty > 0) {
+          const ratio = matchedQty / qty;
+          const netProceeds = matchedQty * price - fee * ratio - tax * ratio;
+          const pnl = netProceeds - matchedCost;
+          realized.push({
+            date: t.date,
+            symbol: sym,
+            name: t.name || '',
+            qty: matchedQty,
+            pnl,
+            cost: matchedCost
+          });
+        }
+      }
+
+      const holdings = [];
+      for (const [symbol, arr] of Object.entries(lots)) {
+        let q = 0, cost = 0;
+        for (const l of arr) {
+          q += l.qty;
+          cost += l.cost;
+        }
+        if (q <= 1e-9) continue;
+        const last = [...sorted].reverse().find(t => String(t.symbol || '').toUpperCase() === symbol);
+        const avg = cost / q;
+        const liveInfo = liveQuotesMap[symbol] || {};
+        const px = liveInfo.price || avg;
+        const mkt = px * q;
+        const unreal = mkt - cost;
+
+        holdings.push({
+          symbol,
+          name: last?.name || liveInfo.name || symbol,
+          qty: q,
+          cost,
+          avg,
+          price: px,
+          mkt,
+          unreal,
+          ret: cost > 0 ? unreal / cost : 0,
+          dayChange: liveInfo.dayChange || 0,
+          dayChangePct: liveInfo.dayChangePct || 0,
+          history6m: liveInfo.history6m || null,
+          advice: liveInfo.advice || { action: '續抱', actionKey: 'hold', reason: '部位穩定續抱' },
+          events: liveInfo.events || []
+        });
+      }
+
+      holdings.sort((a, b) => b.mkt - a.mkt);
+
+      return {
+        holdings,
+        realized,
+        sumRealized: realized.reduce((s, r) => s + r.pnl, 0),
+        sumUnreal: holdings.reduce((s, h) => s + h.unreal, 0),
+        sumCost: holdings.reduce((s, h) => s + h.cost, 0),
+        sumMkt: holdings.reduce((s, h) => s + h.mkt, 0)
+      };
+    }
+
+    function showHoldingsLoading(msg) {
+      isPortfolioLoading = true;
+      portfolioError = null;
+      stockListContainer.innerHTML = `
+        <div class="state-panel">
+          <div class="state-spinner"></div>
+          <h3>${msg || '正在載入持股與即時報價…'}</h3>
+          <p>Local-First：私人帳本只在本機；示範持股由雲端戰情室提供。</p>
+        </div>`;
+    }
+
+    function showHoldingsError(errMsg) {
+      portfolioError = errMsg || '無法載入持股';
+      stockListContainer.innerHTML = `
+        <div class="state-panel">
+          <div style="font-size:2rem;">⚠️</div>
+          <h3>載入失敗</h3>
+          <p>${portfolioError}<br>可改載入示範持股，或稍後重試。</p>
+          <button class="state-cta" onclick="loadJudgeDemoHoldings()">✨ 載入體驗示範持股</button>
+          <br>
+          <button class="state-cta secondary" onclick="fetchPortfolio(true)">重新整理</button>
+        </div>`;
+      updateAiBriefStripVisibility();
+    }
+
+    function showHoldingsEmpty() {
+      stockListContainer.innerHTML = `
+        <div class="state-panel" id="emptyHoldingsPanel">
+          <div style="font-size:2.2rem;">📂</div>
+          <h3>目前沒有持股</h3>
+          <p>這是你的空白私人帳本。用底部「登錄買賣」或匯入 JSON 開始。<br>示範 4 檔不會自動出現，僅供評審體驗。</p>
+          <button class="state-cta" onclick="document.getElementById('btnOpenRecord').click()">➕ 登錄買賣</button>
+          <br>
+          <button class="state-cta secondary" onclick="triggerImportJson()">📥 匯入 JSON</button>
+          <br>
+          <button class="state-cta secondary" onclick="loadJudgeDemoHoldings()">✨ 評審示範（可關閉）</button>
+        </div>`;
+      updateAiBriefStripVisibility();
+    }
+
+    function updateAiBriefStripVisibility() {
+      const strip = document.getElementById('aiBriefStrip');
+      const has = !!(portfolioData && portfolioData.holdings && portfolioData.holdings.length);
+      if (strip) strip.classList.toggle('visible', has);
+      // Header button stays always visible; requestAiBrief alerts when empty
+      const hdr = document.getElementById('btnAiBriefHeader');
+      if (hdr) {
+        hdr.style.opacity = has ? '1' : '0.75';
+        hdr.title = has ? 'AI 戰情簡報' : 'AI 戰情簡報（請先載入持股）';
+      }
+    }
+
+    function focusHoldingsList() {
+      const el = document.getElementById('stockListContainer');
+      if (!el) return;
+      el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      el.classList.add('holdings-focus-pulse');
+      setTimeout(() => el.classList.remove('holdings-focus-pulse'), 1600);
+    }
+
+    async function fetchPortfolio(force = false) {
+      const myId = ++portfolioFetchId;
+      showHoldingsLoading(force ? '正在重新整理持股…' : '正在載入持股與即時報價…');
+      try {
+        const res = await fetch('/api/stocks/portfolio');
+        const cloudData = res.ok ? await res.json() : null;
+        if (myId !== portfolioFetchId) return;
+
+        const realJournal = getRealJournal();
+        const mode = getActiveMode();
+
+        if (mode === 'real') {
+          userTrades = (realJournal && realJournal.trades) || [];
+          
+          const liveMap = {};
+          if (cloudData && cloudData.holdings) {
+            cloudData.holdings.forEach(h => {
+              liveMap[h.symbol] = h;
+            });
+          }
+
+          if (cloudData && cloudData.historySeries) {
+            Object.entries(cloudData.historySeries).forEach(([sym, series]) => {
+              if (!liveMap[sym]) liveMap[sym] = {};
+              const closes = series.closes || [];
+              if (closes.length >= 2) {
+                const start = closes[0];
+                const end = closes[closes.length - 1];
+                const change = end - start;
+                liveMap[sym].history6m = {
+                  closes,
+                  start,
+                  end,
+                  high: Math.max(...closes),
+                  low: Math.min(...closes),
+                  change,
+                  changePct: start ? change / start : 0,
+                  startDate: series.startDate,
+                  endDate: series.endDate
+                };
+              }
+            });
+          }
+
+          if (cloudData && cloudData.allQuotes) {
+            Object.entries(cloudData.allQuotes).forEach(([sym, q]) => {
+              if (!liveMap[sym]) liveMap[sym] = {};
+              if (q.price) liveMap[sym].price = q.price;
+              if (q.change !== undefined) liveMap[sym].dayChange = q.change;
+              if (q.changePct !== undefined) liveMap[sym].dayChangePct = q.changePct;
+              if (q.name) liveMap[sym].name = q.name;
+            });
+          }
+
+          portfolioData = computeClientFIFO(userTrades, liveMap);
+          if (cloudData && cloudData.advice) {
+            portfolioData.advice = cloudData.advice;
+          }
+          // Merge per-holding advice from cloud when symbols overlap
+          if (cloudData && cloudData.holdings) {
+            const bySym = {};
+            cloudData.holdings.forEach(h => { bySym[h.symbol] = h; });
+            portfolioData.holdings.forEach(h => {
+              const src = bySym[h.symbol];
+              if (src && src.advice) h.advice = src.advice;
+              if (src && src.events) h.events = src.events;
+            });
+          }
+          const nHold = (portfolioData.holdings || []).length;
+          accountBadge.textContent = nHold ? `👤 我的帳本 (${nHold})` : '👤 我的帳本（空白）';
+          accountBadge.style.background = 'linear-gradient(135deg, #10b981, #059669)';
+        } else {
+          // Demo Mode
+          const demoExtras = getDemoExtraTrades();
+          if (demoExtras.length > 0) {
+            const baseDemoTrades = (cloudData && cloudData.trades) || [
+              { symbol: "2330", name: "台積電", qty: 1000, price: 950.0, fee: 28, tax: 0, date: "2026-06-15", type: "buy" },
+              { symbol: "2308", name: "台達電", qty: 500, price: 1200.0, fee: 25, tax: 0, date: "2026-07-10", type: "buy" },
+              { symbol: "0050", name: "元大台灣50", qty: 2000, price: 85.0, fee: 15, tax: 0, date: "2026-03-01", type: "buy" },
+              { symbol: "3037", name: "欣興", qty: 1000, price: 920.0, fee: 26, tax: 0, date: "2026-08-01", type: "buy" }
+            ];
+            const combinedDemoTrades = [...baseDemoTrades, ...demoExtras];
+            const liveMap = {};
+            if (cloudData && cloudData.holdings) {
+              cloudData.holdings.forEach(h => { liveMap[h.symbol] = h; });
+            }
+            if (cloudData && cloudData.allQuotes) {
+              Object.entries(cloudData.allQuotes).forEach(([sym, q]) => {
+                if (!liveMap[sym]) liveMap[sym] = {};
+                if (q.price) liveMap[sym].price = q.price;
+                if (q.change !== undefined) liveMap[sym].dayChange = q.change;
+                if (q.changePct !== undefined) liveMap[sym].dayChangePct = q.changePct;
+                if (q.name) liveMap[sym].name = q.name;
+              });
+            }
+            portfolioData = computeClientFIFO(combinedDemoTrades, liveMap);
+            if (cloudData && cloudData.advice) portfolioData.advice = cloudData.advice;
+            accountBadge.textContent = `✨ 示範模式 (+${demoExtras.length}筆)`;
+            accountBadge.style.background = 'linear-gradient(135deg, #6366f1, #38bdf8)';
+          } else {
+            if (!cloudData || cloudData.ok === false) {
+              showHoldingsError((cloudData && cloudData.error) || '示範持股載入失敗');
+              return;
+            }
+            portfolioData = cloudData;
+            accountBadge.textContent = `✨ 示範模式`;
+            accountBadge.style.background = 'linear-gradient(135deg, #6366f1, #38bdf8)';
+          }
+        }
+
+        if (myId !== portfolioFetchId) return;
+        isPortfolioLoading = false;
+        portfolioError = null;
+        renderUI();
+      } catch (err) {
+        console.error('Fetch error:', err);
+        showHoldingsError(err.message || '網路連線失敗');
+      } finally {
+        setTimeout(() => btnRefresh.classList.remove('rotating'), 500);
+      }
+    }
+
+    function renderUI() {
+      if (!portfolioData) return;
+      syncDemoSampleVisibility();
+      updateAiBriefStripVisibility();
+
+      totalMarketVal.textContent = fmtCurrency(portfolioData.sumMkt);
+      const unrealPnl = portfolioData.sumUnreal;
+      const unrealPct = portfolioData.sumCost > 0 ? unrealPnl / portfolioData.sumCost : 0;
+      totalUnrealPnl.textContent = fmtPnl(unrealPnl, unrealPct);
+      totalUnrealPnl.className = 'metric-sub-val ' + getPnlClass(unrealPnl);
+
+      const realizedPnl = portfolioData.sumRealized;
+      totalRealizedPnl.textContent = fmtPnl(realizedPnl, null);
+      totalRealizedPnl.className = 'metric-sub-val ' + getPnlClass(realizedPnl);
+
+      const session = portfolioData.advice?.marketSession;
+      if (session) {
+        marketSessionText.textContent = `${session.label} (45s 串流)`;
+        document.getElementById('marketDot').style.background = session.open ? 'var(--green)' : 'var(--muted)';
+      }
+      lastUpdatedText.textContent = `更新於 ${new Date().toLocaleTimeString('zh-TW', { hour: '2-digit', minute: '2-digit', second: '2-digit' })}`;
+
+      const holdings = portfolioData.holdings || [];
+      document.getElementById('countAll').textContent = holdings.length;
+      document.getElementById('countReview').textContent = holdings.filter(h => h.advice?.actionKey === 'review').length;
+      document.getElementById('countLock').textContent = holdings.filter(h => h.advice?.actionKey === 'lock').length;
+      document.getElementById('countHold').textContent = holdings.filter(h => h.advice?.actionKey === 'hold').length;
+
+      renderStockList();
+    }
+
+    function renderStockList() {
+      if (!portfolioData || !portfolioData.holdings) return;
+
+      let list = portfolioData.holdings;
+      if (currentFilter !== 'all') {
+        list = list.filter(h => h.advice?.actionKey === currentFilter);
+      }
+
+      updateAiBriefStripVisibility();
+
+      if (!portfolioData.holdings.length) {
+        showHoldingsEmpty();
+        return;
+      }
+
+      if (list.length === 0) {
+        stockListContainer.innerHTML = `
+          <div class="state-panel">
+            <h3>此分類下無持股</h3>
+            <p>試試切換回「全部」。</p>
+            <button class="state-cta" onclick="document.querySelector('.tab-pill[data-filter=all]').click()">查看全部</button>
+          </div>`;
+        return;
+      }
+
+      const demoBanner = getActiveMode() === 'demo' ? `
+        <div class="demo-exit-bar">
+          <div>
+            <b>這是示範 4 檔</b>，不是你的持股。
+            <span>台積電、台達電、0050、欣興僅供體驗，可關閉後改用空白帳本。</span>
+          </div>
+          <button type="button" class="demo-exit-btn" onclick="exitDemoToEmptyLedger()">關閉示範</button>
+        </div>` : '';
+
+      stockListContainer.innerHTML = demoBanner + list.map((h, idx) => {
+        const price = h.price || h.quote?.price || h.fallbackPrice || 0;
+        const dayChange = h.dayChange || h.quote?.change || 0;
+        const dayChangePct = h.dayChangePct || h.quote?.changePct || 0;
+        const sign = dayChange > 0 ? '+' : '';
+        const dayChangeStr = `${sign}${dayChange.toFixed(1)} (${sign}${(dayChangePct * 100).toFixed(2)}%)`;
+        const dayClass = getPnlClass(dayChange);
+
+        const unreal = h.unreal || 0;
+        const ret = h.ret || 0;
+        const unrealClass = getPnlClass(unreal);
+
+        const advice = h.advice || {};
+        const actionLabel = advice.action || '續抱';
+        const actionKey = advice.actionKey || 'hold';
+        let tagClass = 'tag-hold';
+        if (actionKey === 'review') tagClass = 'tag-review';
+        if (actionKey === 'lock') tagClass = 'tag-lock';
+
+        const events = h.events || [];
+        const hasEvent = events.length > 0;
+
+        const history6m = h.history6m;
+        const is6mUp = history6m ? (history6m.change >= 0) : true;
+        const sparklineMini = createSparklineSVG(history6m, false, is6mUp);
+        const fullChart = createSparklineSVG(history6m, true, is6mUp);
+
+        const briefHint = aiBriefBySymbol[h.symbol];
+
+        return `
+          <div class="stock-card" onclick="toggleCardDetails(${idx})">
+            <div class="card-top">
+              <div class="stock-name-group">
+                <span class="stock-name">${h.name}</span>
+                <span class="stock-symbol">${h.symbol}</span>
+              </div>
+              <div class="stock-price-group">
+                <div class="stock-price ${dayClass}">$${price.toLocaleString()}</div>
+                <div class="stock-change ${dayClass}">${dayChangeStr}</div>
+              </div>
+            </div>
+
+            <div class="card-chart-row">
+              <span style="font-size:0.72rem; color:var(--muted);">
+                6M: <strong style="color:${is6mUp ? 'var(--red)' : 'var(--green)'};">${is6mUp ? '+' : ''}${((history6m?.changePct || 0) * 100).toFixed(1)}%</strong>
+              </span>
+              ${sparklineMini}
+            </div>
+
+            <div class="card-bottom">
+              <div>
+                <span style="color:var(--muted); font-size:0.72rem;">損益:</span>
+                <span class="unreal-pnl ${unrealClass}">${fmtPnl(unreal, ret)}</span>
+              </div>
+              <span class="advice-tag ${tagClass}">
+                ${actionKey === 'review' ? '⚠️' : actionKey === 'lock' ? '💰' : '🟢'} ${actionLabel}
+              </span>
+            </div>
+
+            ${briefHint ? `<div class="card-brief-tag">${briefHint}</div>` : ''}
+
+            <div class="stock-details" id="details-${idx}">
+              <div class="expanded-chart-box">
+                <div class="chart-header">
+                  <span>📈 近 6 個月走勢圖 (${history6m?.startDate || '3月'} ~ ${history6m?.endDate || '今日'})</span>
+                  <span>高: $${history6m?.high || '--'} / 低: $${history6m?.low || '--'}</span>
+                </div>
+                ${fullChart}
+              </div>
+
+              <div class="detail-grid">
+                <div class="detail-cell">
+                  <div class="detail-cell-label">持股數量</div>
+                  <div class="detail-cell-val">${isPrivacyMode ? '•••' : (h.qty || 0).toLocaleString()} 股</div>
+                </div>
+                <div class="detail-cell">
+                  <div class="detail-cell-label">平均成本</div>
+                  <div class="detail-cell-val">$${(h.avg || 0).toFixed(1)}</div>
+                </div>
+                <div class="detail-cell">
+                  <div class="detail-cell-label">部位市值</div>
+                  <div class="detail-cell-val">${fmtCurrency(h.mkt)}</div>
+                </div>
+              </div>
+
+              ${advice.reason ? `
+                <div class="ai-reason-box">
+                  <strong>💡 AI 建議：</strong> ${advice.reason}
+                </div>
+              ` : ''}
+
+              ${aiBriefBySymbol[h.symbol] ? `
+                <div class="ai-snippet-box">
+                  <strong>✨ 戰情摘錄：</strong> ${aiBriefBySymbol[h.symbol]}
+                </div>
+              ` : ''}
+
+              ${hasEvent ? `
+                <div class="event-alert-box">
+                  <strong>🚨 重大事件警示：</strong> ${events[0].headline || events[0].label || '漲跌停異常監控中'}
+                </div>
+              ` : ''}
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    window.toggleCardDetails = function(idx) {
+      const el = document.getElementById(`details-${idx}`);
+      if (el) el.classList.toggle('open');
+    };
+
+    // Onboarding Guide Modal
+    window.openGuideModal = function() {
+      guideModal.classList.add('active');
+    };
+    window.closeGuideModal = function(markSeen = false) {
+      guideModal.classList.remove('active');
+      if (markSeen) {
+        localStorage.setItem(ONBOARDING_SEEN_KEY, "1");
+      }
+    };
+
+    if (!localStorage.getItem(ONBOARDING_SEEN_KEY)) {
+      setTimeout(() => {
+        openGuideModal();
+      }, 400);
+    }
+
+    // Account Management Modal
+    function renderMgmtModalButtons() {
+      const container = document.getElementById('mgmtBtnGrid');
+      if (!container) return;
+
+      const realJournal = getRealJournal();
+      const currentMode = getActiveMode();
+      const hasReal = !!(realJournal && realJournal.trades && realJournal.trades.length);
+      const demoExtras = getDemoExtraTrades();
+
+      let html = '';
+
+      if (currentMode === 'demo') {
+        html += `
+          <button class="mgmt-btn mgmt-btn-primary" onclick="${hasReal ? 'switchToRealJournal()' : 'exitDemoToEmptyLedger()'}">
+            <div class="mgmt-btn-icon">👤</div>
+            <div class="mgmt-btn-text">
+              <strong>${hasReal ? '關閉示範，回到我的帳本' : '關閉示範，改用空白帳本'}</strong>
+              <span>${hasReal ? `示範 4 檔會收起，回到已保存的 ${realJournal.trades.length} 筆真實交易` : '示範 4 檔會消失，之後用「登錄買賣」開始記你的持股'}</span>
+            </div>
+          </button>
+          <button class="mgmt-btn" onclick="resetDemoSession()">
+            <div class="mgmt-btn-icon">🔄</div>
+            <div class="mgmt-btn-text">
+              <strong>重新載入示範 4 檔</strong>
+              <span>${demoExtras.length ? `先清掉 ${demoExtras.length} 筆測試單據，再還原台積電／台達電／0050／欣興` : '還原台積電／台達電／0050／欣興（僅供體驗）'}</span>
+            </div>
+          </button>
+        `;
+        if (!hasReal) {
+          html += `
+          <button class="mgmt-btn" onclick="triggerImportJson()">
+            <div class="mgmt-btn-icon">📥</div>
+            <div class="mgmt-btn-text">
+              <strong>匯入我的真實交易紀錄 (JSON)</strong>
+              <span>匯入後自動離開示範，改顯示你的帳本</span>
+            </div>
+          </button>`;
+        }
+      } else {
+        html += `
+          <button class="mgmt-btn" onclick="switchToDemoMode()">
+            <div class="mgmt-btn-icon">✨</div>
+            <div class="mgmt-btn-text">
+              <strong>暫時切換到示範 4 檔</strong>
+              <span>你的帳本仍留在本機，可隨時關閉示範回來</span>
+            </div>
+          </button>
+        `;
+        if (!hasReal) {
+          html += `
+          <button class="mgmt-btn mgmt-btn-primary" onclick="triggerImportJson()">
+            <div class="mgmt-btn-icon">📥</div>
+            <div class="mgmt-btn-text">
+              <strong>匯入我的真實交易紀錄 (JSON)</strong>
+              <span>100% 存於本機瀏覽器</span>
+            </div>
+          </button>`;
+        }
+      }
+
+      if (hasReal) {
+        html += `
+          <button class="mgmt-btn" onclick="triggerImportJson()">
+            <div class="mgmt-btn-icon">📥</div>
+            <div class="mgmt-btn-text">
+              <strong>匯入 / 覆蓋私人帳本 JSON</strong>
+              <span>讀取新的備份檔或交易紀錄</span>
+            </div>
+          </button>
+          <button class="mgmt-btn" onclick="exportUserJournal()">
+            <div class="mgmt-btn-icon">📤</div>
+            <div class="mgmt-btn-text">
+              <strong>匯出我的私人帳本備份 (JSON)</strong>
+              <span>匯出本機共 ${realJournal.trades.length} 筆真實成交資料</span>
+            </div>
+          </button>
+          <button class="mgmt-btn mgmt-btn-danger" onclick="clearAllLocalStorage()">
+            <div class="mgmt-btn-icon">🗑️</div>
+            <div class="mgmt-btn-text">
+              <strong>清空本機私人帳本與紀錄</strong>
+              <span>永久刪除本機真實帳本（請先匯出備份）</span>
+            </div>
+          </button>
+        `;
+      }
+
+      container.innerHTML = html;
+    }
+
+    window.openMgmtModal = function() {
+      renderMgmtModalButtons();
+      mgmtModal.classList.add('active');
+    };
+    window.closeMgmtModal = function() {
+      mgmtModal.classList.remove('active');
+    };
+
+    window.switchToRealJournal = function() {
+      clearDemoOptIn();
+      localStorage.setItem(ACTIVE_MODE_KEY, 'real');
+      closeMgmtModal();
+      fetchPortfolio(true);
+    };
+
+    window.switchToDemoMode = function() {
+      markDemoOptIn();
+      closeMgmtModal();
+      fetchPortfolio(true);
+    };
+
+    window.resetDemoSession = function() {
+      localStorage.removeItem(DEMO_EXTRA_STORAGE_KEY);
+      markDemoOptIn();
+      aiBriefCache = null;
+      aiBriefBySymbol = {};
+      try { closeMgmtModal(); } catch (_) {}
+      try { closeJudgeTour(); } catch (_) {}
+      showHoldingsLoading('🔄 正在還原純淨示範環境…');
+      fetchPortfolio(true);
+      setTimeout(() => {
+        alert('✨ 示範環境已重置！所有測試單據已清除，還原至初始 4 檔示範持股。\n（您的私人帳本已妥善保存，未受任何影響）');
+      }, 300);
+    };
+
+    window.clearAllLocalStorage = function() {
+      if (confirm('⚠️ 確定要清空本機私人帳本？\n\n真實交易會刪除，畫面會變成空白帳本，不會再自動跳出示範 4 檔。\n建議先匯出備份。')) {
+        localStorage.removeItem(USER_JOURNAL_STORAGE_KEY);
+        localStorage.removeItem(REAL_JOURNAL_STORAGE_KEY);
+        localStorage.removeItem(DEMO_EXTRA_STORAGE_KEY);
+        persistEmptyPrivateLedger();
+        clearDemoOptIn();
+        localStorage.setItem(ACTIVE_MODE_KEY, 'real');
+        userTrades = [];
+        aiBriefCache = null;
+        aiBriefBySymbol = {};
+        alert('本機帳本已清空，現在是空白帳本。');
+        closeMgmtModal();
+        fetchPortfolio(true);
+      }
+    };
+
+    window.triggerImportJson = function() {
+      jsonFileInput.click();
+    };
+
+    jsonFileInput.addEventListener('change', (e) => {
+      const file = e.target.files[0];
+      if (!file) return;
+
+      const reader = new FileReader();
+      reader.onload = (ev) => {
+        try {
+          const parsed = JSON.parse(ev.target.result);
+          const trades = parsed.trades || (Array.isArray(parsed) ? parsed : []);
+          if (!trades.length) throw new Error('檔案中無交易紀錄');
+          const payload = JSON.stringify({
+            version: 1,
+            trades: trades,
+            importedAt: new Date().toISOString()
+          });
+          localStorage.setItem(REAL_JOURNAL_STORAGE_KEY, payload);
+          localStorage.setItem(USER_JOURNAL_STORAGE_KEY, payload);
+          clearDemoOptIn();
+          localStorage.setItem(ACTIVE_MODE_KEY, 'real');
+          alert(`🎉 成功匯入 ${trades.length} 筆真實成交紀錄！已自動切換至私人帳本。`);
+          closeMgmtModal();
+          fetchPortfolio(true);
+        } catch (err) {
+          alert('JSON 解析失敗，請確認檔案格式正確。');
+        }
+      };
+      reader.readAsText(file);
+    });
+
+    window.exportUserJournal = function() {
+      const realJournal = getRealJournal();
+      if (!realJournal || !realJournal.trades || !realJournal.trades.length) {
+        alert('目前本機無私人帳本可匯出。');
+        return;
+      }
+      const blob = new Blob([JSON.stringify(realJournal, null, 2)], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `stockpilot-backup-${new Date().toISOString().slice(0,10)}.json`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      alert(`已匯出備份檔案（共 ${realJournal.trades.length} 筆真實成交紀錄）！`);
+    };
+
+    window.loadJudgeDemoHoldings = async function() {
+      markDemoOptIn();
+      aiBriefCache = null;
+      aiBriefBySymbol = {};
+      try { closeMgmtModal(); } catch (_) {}
+      try { closeJudgeTour(); } catch (_) {}
+      showHoldingsLoading('✨ 正在載入體驗示範持股…');
+      await fetchPortfolio(true);
+      updateAiBriefStripVisibility();
+      if (portfolioData && portfolioData.holdings && portfolioData.holdings.length) {
+        focusHoldingsList();
+      }
+    };
+
+    window.switchToJudgeDemo = function() {
+      loadJudgeDemoHoldings();
+    };
+
+    window.clearLocalJournal = function() {
+      clearAllLocalStorage();
+    };
+
+    // Unified Record Modal Controls
+    btnOpenRecord.addEventListener('click', () => {
+      syncDemoSampleVisibility();
+      recordModal.classList.add('active');
+    });
+
+    window.closeRecordModal = function() {
+      recordModal.classList.remove('active');
+      currentOcrTrade = null;
+      currentOcrDemoOnly = false;
+      const confirmBtn = document.getElementById('btnConfirmOcr');
+      if (confirmBtn) confirmBtn.textContent = '✅ 確認寫入本機私人帳本';
+      ocrResultCard.style.display = 'none';
+      ocrPreviewImg.style.display = 'none';
+      ocrPromptText.style.display = 'block';
+      const prog = document.getElementById('ocrProgress');
+      if (prog) prog.classList.remove('active');
+      const toast = document.getElementById('ocrConfirmToast');
+      if (toast) toast.style.display = 'none';
+      if (typeof resetSamplePillStates === 'function') resetSamplePillStates();
+      // restore default prompt markup if it was overwritten
+      if (ocrPromptText && !ocrPromptText.querySelector('svg')) {
+        ocrPromptText.innerHTML = `
+            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="var(--blue)" stroke-width="2" style="margin-bottom:6px;"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+            <div style="font-size:0.9rem; font-weight:700; margin-bottom:4px;">拍照或上傳券商下單截圖</div>
+            <div style="font-size:0.75rem; color:var(--muted);">支援國泰、富邦、中信、元大、永豐等券商 APP</div>`;
+      }
+    };
+
+    window.switchRecordMode = function(mode) {
+      if (mode === 'ai') {
+        tabAI.classList.add('active');
+        tabManual.classList.remove('active');
+        aiRecordView.style.display = 'block';
+        manualRecordView.style.display = 'none';
+      } else {
+        tabManual.classList.add('active');
+        tabAI.classList.remove('active');
+        manualRecordView.style.display = 'block';
+        aiRecordView.style.display = 'none';
+      }
+    };
+
+    // Manual Trade Form Logic
+    window.setManualSide = function(side) {
+      manualSide = side;
+      if (side === 'buy') {
+        btnManualBuy.className = 'side-btn active-buy';
+        btnManualSell.className = 'side-btn';
+      } else {
+        btnManualSell.className = 'side-btn active-sell';
+        btnManualBuy.className = 'side-btn';
+      }
+    };
+
+    window.autoFillStockName = function() {
+      const sym = inpSymbol.value.trim().toUpperCase();
+      if (KNOWN_STOCK_NAMES[sym]) {
+        inpName.value = KNOWN_STOCK_NAMES[sym];
+      }
+    };
+
+    window.setQuickQty = function(q) {
+      const current = Number(inpQty.value) || 0;
+      inpQty.value = current + q;
+    };
+
+    window.saveManualTrade = function() {
+      const sym = inpSymbol.value.trim().toUpperCase();
+      const name = inpName.value.trim() || sym;
+      const price = Number(inpPrice.value);
+      const qty = Number(inpQty.value);
+      const fee = Number(inpFee.value) || 0;
+      const date = inpDate.value || new Date().toISOString().slice(0, 10);
+
+      if (!sym || isNaN(price) || price <= 0 || isNaN(qty) || qty <= 0) {
+        alert('請完整填寫股票代號、成交價格與股數！');
+        return;
+      }
+
+      const isDemo = !isRealMode();
+      const newTrade = {
+        id: `manual-${Date.now()}`,
+        date: date,
+        type: manualSide,
+        symbol: sym,
+        name: name,
+        qty: qty,
+        price: price,
+        fee: fee,
+        tax: 0,
+        account: "手動輸入記帳",
+        notes: `手動登錄 ${manualSide === 'buy' ? '買進' : '賣出'}`
+      };
+
+      if (isDemo) {
+        const extras = getDemoExtraTrades();
+        extras.push(newTrade);
+        localStorage.setItem(DEMO_EXTRA_STORAGE_KEY, JSON.stringify(extras));
+        alert(`🎉 示範登錄完成！已將【${name} (${sym})】記入【示範模式】（未寫入私人帳本）。`);
+      } else {
+        const realJournal = getRealJournal() || { version: 1, trades: [] };
+        realJournal.trades = realJournal.trades || [];
+        realJournal.trades.push(newTrade);
+        realJournal.updatedAt = new Date().toISOString();
+        const payload = JSON.stringify(realJournal);
+        localStorage.setItem(REAL_JOURNAL_STORAGE_KEY, payload);
+        localStorage.setItem(USER_JOURNAL_STORAGE_KEY, payload);
+        alert(`🎉 成功登錄【${name} (${sym})】${manualSide === 'buy' ? '買進' : '賣出'} ${qty.toLocaleString()} 股！已存入本機私人帳本。`);
+      }
+
+      // Reset inputs
+      inpSymbol.value = '';
+      inpName.value = '';
+      inpPrice.value = '';
+      inpQty.value = '';
+
+      closeRecordModal();
+      fetchPortfolio(true);
+    };
+
+    // OCR Logic
+    ocrDropArea.addEventListener('click', () => ocrFileInput.click());
+
+    const ocrProgress = document.getElementById('ocrProgress');
+    const ocrProgressLabel = document.getElementById('ocrProgressLabel');
+    const ocrProgressHint = document.getElementById('ocrProgressHint');
+    const ocrConfirmToast = document.getElementById('ocrConfirmToast');
+
+    function setOcrProgress(active, label, hint) {
+      if (!ocrProgress) return;
+      ocrProgress.classList.toggle('active', !!active);
+      if (label) ocrProgressLabel.textContent = label;
+      if (hint) ocrProgressHint.textContent = hint;
+      if (active) {
+        ocrResultCard.style.display = 'none';
+        ocrPromptText.style.display = 'none';
+      }
+    }
+
+    function resetSamplePillStates() {
+      document.querySelectorAll('.sample-pill-btn').forEach(b => {
+        b.classList.remove('busy', 'done');
+      });
+    }
+
+    ocrFileInput.addEventListener('change', async (e) => {
+      const file = e.target.files[0];
+      if (!file) return;
+
+      const reader = new FileReader();
+      reader.onload = (ev) => {
+        ocrPreviewImg.src = ev.target.result;
+        ocrPreviewImg.style.display = 'block';
+        ocrPromptText.style.display = 'none';
+      };
+      reader.readAsDataURL(file);
+
+      const formData = new FormData();
+      formData.append('file', file);
+
+      setOcrProgress(true, '✨ Gemini 正在精準辨識下單截圖…', '解析代號／買賣別／價格／股數');
+
+      try {
+        const res = await fetch('/api/stocks/ocr', {
+          method: 'POST',
+          body: formData
+        });
+        const data = await res.json();
+        if (data.ok && data.trade) {
+          showOCRResult(data.trade);
+        } else {
+          setOcrProgress(false);
+          alert('OCR 未能辨識，請改用示範單據或手動輸入');
+          ocrPromptText.style.display = 'block';
+        }
+      } catch (err) {
+        setOcrProgress(false);
+        alert('OCR 解析失敗，請確認伺服器連線');
+        ocrPromptText.style.display = 'block';
+      }
+    });
+
+    window.testSampleOCR = function(sym) {
+      if (isRealMode()) {
+        alert('示範單據只在評審示範模式使用，避免寫進你的帳本。請先載入示範，或改上傳自己的截圖。');
+        return;
+      }
+      const sample = DEMO_SAMPLES[sym];
+      if (!sample) return;
+
+      resetSamplePillStates();
+      const pill = document.getElementById('samplePill' + sym);
+      if (pill) pill.classList.add('busy');
+
+      ocrPreviewImg.style.display = 'none';
+      setOcrProgress(
+        true,
+        `✨ Gemini 正在辨識【${sample.broker}】示範截圖…`,
+        `示範體驗 · ${sample.name}（${sample.symbol}）`
+      );
+
+      setTimeout(() => {
+        if (pill) {
+          pill.classList.remove('busy');
+          pill.classList.add('done');
+        }
+        showOCRResult(sample, { demoOnly: true });
+      }, 720);
+    };
+
+    function isDemoCloudMode() {
+      return !isRealMode();
+    }
+
+    function showOCRResult(trade, opts = {}) {
+      currentOcrTrade = trade;
+      // Sample pills always demoOnly; never force private ledger for DEMO_SAMPLES
+      currentOcrDemoOnly = !!(opts && opts.demoOnly);
+      setOcrProgress(false);
+      ocrTradeTitle.textContent = `${trade.symbol} ${trade.name} · ${trade.action}`;
+      ocrTradePrice.textContent = `$${trade.price} (${Number(trade.qty).toLocaleString()}股)`;
+      ocrTradeBroker.textContent = `手續費: $${trade.fee || 0} | ${trade.broker || '券商'} | ${trade.date}`;
+      ocrResultCard.style.display = 'block';
+      ocrPromptText.style.display = 'none';
+      if (ocrConfirmToast) {
+        ocrConfirmToast.style.display = 'block';
+        ocrConfirmToast.textContent = currentOcrDemoOnly || !isRealMode()
+          ? '示範體驗：確認後不會寫入私人帳本，仍停留示範模式'
+          : '下一步：確認寫入 → 本機私人帳本（伺服器不儲存）';
+      }
+      const btn = document.getElementById('btnConfirmOcr');
+      if (btn) {
+        btn.textContent = currentOcrDemoOnly || !isRealMode() ? '✅ 確認示範寫入（不進私人帳本）' : '✅ 確認寫入本機私人帳本';
+        btn.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        btn.classList.add('holdings-focus-pulse');
+        setTimeout(() => btn.classList.remove('holdings-focus-pulse'), 1200);
+      }
+    }
+
+    window.confirmTradeEntry = function(opts = {}) {
+      if (!currentOcrTrade) return;
+
+      const demoOnly = !!(opts && opts.demoOnly) || currentOcrDemoOnly || !isRealMode();
+      const tradeSnap = currentOcrTrade;
+
+      const tradeItem = {
+        id: `ocr-${Date.now()}`,
+        date: tradeSnap.date || new Date().toISOString().slice(0, 10),
+        type: tradeSnap.action === '買進' ? 'buy' : 'sell',
+        symbol: tradeSnap.symbol,
+        name: tradeSnap.name,
+        qty: Number(tradeSnap.qty) || 0,
+        price: Number(tradeSnap.price) || 0,
+        fee: Number(tradeSnap.fee) || 0,
+        tax: Number(tradeSnap.tax) || 0,
+        account: tradeSnap.broker || '手機截圖記帳',
+        notes: tradeSnap.notes || 'Gemini 截圖自動記帳'
+      };
+
+      if (demoOnly) {
+        if (isRealMode()) {
+          alert('示範單據不會寫入私人帳本。請先載入評審示範，或改上傳自己的截圖。');
+          return;
+        }
+        const extras = getDemoExtraTrades();
+        extras.push(tradeItem);
+        localStorage.setItem(DEMO_EXTRA_STORAGE_KEY, JSON.stringify(extras));
+        markDemoOptIn();
+        alert(`🎉 示範寫入完成！已將【${tradeSnap.name} (${tradeSnap.symbol})】記入【示範模式】（未寫入私人帳本）。\n可隨時關閉示範回到你的帳本。`);
+      } else {
+        const realJournal = getRealJournal() || { version: 1, trades: [] };
+        realJournal.trades = realJournal.trades || [];
+        realJournal.trades.push(tradeItem);
+        realJournal.updatedAt = new Date().toISOString();
+        const payload = JSON.stringify(realJournal);
+        localStorage.setItem(REAL_JOURNAL_STORAGE_KEY, payload);
+        localStorage.setItem(USER_JOURNAL_STORAGE_KEY, payload);
+        alert(`🎉 已成功將【${tradeSnap.name} (${tradeSnap.symbol})】${tradeSnap.action} ${tradeSnap.qty} 股記入本機私人帳本！`);
+      }
+
+      closeRecordModal();
+      fetchPortfolio(true);
+    };
+
+    function indexAiBriefBySymbol(brief) {
+      aiBriefBySymbol = {};
+      if (!brief) return;
+      const push = (arr, prefix) => {
+        (arr || []).forEach(item => {
+          if (!item || !item.symbol) return;
+          const reason = item.reason || '';
+          aiBriefBySymbol[item.symbol] = `${prefix}${reason}`;
+        });
+      };
+      push(brief.watchlist, '⚠ 關注：');
+      push(brief.opportunities, '💡 機會：');
+    }
+
+    function renderAiBriefBody(brief, source) {
+      const body = document.getElementById('aiBriefBody');
+      const srcEl = document.getElementById('aiBriefSource');
+      const disc = document.getElementById('aiBriefDisclaimer');
+      if (srcEl) srcEl.textContent = `來源：${source || '—'}`;
+      if (disc) disc.textContent = brief.disclaimer || '';
+      const watch = (brief.watchlist || []).map(w =>
+        `<div class="brief-item"><strong>${w.symbol}</strong> — ${w.reason || ''}</div>`
+      ).join('') || '<div class="brief-item">暫無</div>';
+      const opps = (brief.opportunities || []).map(w =>
+        `<div class="brief-item"><strong>${w.symbol}</strong> — ${w.reason || ''}</div>`
+      ).join('') || '<div class="brief-item">暫無</div>';
+      body.innerHTML = `
+        <div class="brief-block"><h4>總覽</h4><p>${brief.summary || ''}</p></div>
+        <div class="brief-block"><h4>集中度風險</h4><p>${brief.concentrationRisk || ''}</p></div>
+        <div class="brief-block"><h4>關注清單</h4>${watch}</div>
+        <div class="brief-block"><h4>機會觀察</h4>${opps}</div>
+      `;
+    }
+
+    window.openAiBriefModal = function() {
+      document.getElementById('aiBriefModal').classList.add('active');
+    };
+    window.closeAiBriefModal = function() {
+      document.getElementById('aiBriefModal').classList.remove('active');
+    };
+
+    
+    window.closeMagiModal = function() {
+      const m = document.getElementById('magiModal');
+      if (m) m.classList.remove('active');
+    };
+
+    function renderMagiModal(data) {
+      const body = document.getElementById('magiBody');
+      if (!body) return;
+      const magi = (data && data.magi) || {};
+      const votes = magi.votes || [];
+      const tally = magi.tally || {};
+      const dissent = magi.dissent || [];
+      const actions = magi.actions || [];
+      const tallyParts = Object.entries(tally).sort((a,b)=>b[1]-a[1]).map(([k,v])=>v);
+      const tallyBadge = tallyParts.length >= 2 ? `${tallyParts[0]}:${tallyParts[1]}` : (tallyParts[0] ? `${tallyParts[0]}` : '—');
+      const brainClass = { Melchior: 'melchior', Balthasar: 'balthasar', Casper: 'casper' };
+
+      const brainHtml = votes.map(v => {
+        const cls = brainClass[v.brain] || '';
+        const focus = (v.focusSymbols || []).length ? `<div class="magi-focus">聚焦：${(v.focusSymbols||[]).join(', ')}</div>` : '';
+        return `<div class="magi-brain-card ${cls}">
+          <div class="magi-brain-head">
+            <div>
+              <div class="magi-brain-name">${v.brain || ''}</div>
+              <div class="magi-brain-role">${v.role || ''}</div>
+            </div>
+            <span class="magi-vote-pill">${v.voteLabel || v.vote || ''}</span>
+          </div>
+          <div class="magi-rationale">${v.rationale || ''}</div>
+          ${focus}
+        </div>`;
+      }).join('');
+
+      const dissentHtml = dissent.length ? `<div class="magi-dissent"><h4>少數異議</h4><ul style="margin:0;padding-left:18px;">${
+        dissent.map(d => `<li><strong>${d.brain}</strong> · ${d.voteLabel} — ${d.rationale || ''}</li>`).join('')
+      }</ul></div>` : '';
+
+      const actionsHtml = actions.length ? `<div class="magi-actions"><h4>建議行動</h4><ul style="margin:0;padding-left:18px;">${
+        actions.map(a => `<li><strong>${a.symbol || ''}</strong> ${a.action || ''} — ${a.why || ''}</li>`).join('')
+      }</ul></div>` : '';
+
+      body.innerHTML = `
+        <div style="font-size:0.78rem;color:#94a3b8;">議題：${magi.question || '目前組合整體戰術決議？'}</div>
+        <div class="magi-decision-banner">
+          <div style="font-size:0.72rem;color:#c4b5fd;font-weight:700;">多數決議</div>
+          <div style="font-size:1.15rem;font-weight:900;color:#f8fafc;margin-top:4px;">
+            ${magi.decisionLabel || magi.decision || '—'}
+            <span class="tally">${tallyBadge}</span>
+          </div>
+          <div style="font-size:0.8rem;color:#e2e8f0;margin-top:8px;line-height:1.45;">${magi.summary || ''}</div>
+        </div>
+        <div class="magi-brains">${brainHtml}</div>
+        ${dissentHtml}
+        ${actionsHtml}
+        <div class="magi-meta">來源：${(data && data.source) || '—'}<br>${magi.disclaimer || '研究／展示用，非投資建議；Local-First。'}</div>
+      `;
+    }
+
+    window.requestMagiVote = async function() {
+      const btn = document.getElementById('btnMagi');
+      const btnHdr = document.getElementById('btnMagiHeader');
+      if (!portfolioData || !(portfolioData.holdings || []).length) {
+        alert('請先載入持股（評審可點「載入評審示範持股」）');
+        return;
+      }
+      if (btn) { btn.disabled = true; btn.textContent = '🧠 表決中…'; }
+      if (btnHdr) { btnHdr.disabled = true; btnHdr.textContent = '🧠 …'; }
+      try {
+        const holdingsPayload = portfolioData.holdings.map(h => ({
+          symbol: h.symbol,
+          name: h.name,
+          qty: h.qty,
+          avg: h.avg,
+          price: h.price,
+          mkt: h.mkt,
+          unreal: h.unreal,
+          ret: h.ret,
+          cost: h.cost,
+          advice: h.advice
+        }));
+        const adviceTags = portfolioData.holdings.map(h => ({
+          symbol: h.symbol,
+          action: h.advice?.action,
+          actionKey: h.advice?.actionKey,
+          reason: h.advice?.reason
+        }));
+        const res = await fetch('/api/stocks/magi', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            holdings: holdingsPayload,
+            adviceTags,
+            question: '目前組合整體戰術決議？',
+          }),
+        });
+        const data = await res.json();
+        if (!data || !data.ok) throw new Error((data && data.error) || 'MAGI 失敗');
+        renderMagiModal(data);
+        const modal = document.getElementById('magiModal');
+        if (modal) modal.classList.add('active');
+      } catch (err) {
+        console.error(err);
+        alert('MAGI 決議暫時無法取得：' + (err && err.message ? err.message : err));
+      } finally {
+        if (btn) { btn.disabled = false; btn.textContent = '🧠 MAGI 決議'; }
+        if (btnHdr) { btnHdr.disabled = false; btnHdr.textContent = '🧠 MAGI 決議'; }
+      }
+    };
+
+    window.requestAiBrief = async function() {
+      if (!portfolioData || !portfolioData.holdings || !portfolioData.holdings.length) {
+        alert('請先載入示範持股或匯入私人帳本。');
+        return;
+      }
+      const btn = document.getElementById('btnAiBrief');
+      const btnHdr = document.getElementById('btnAiBriefHeader');
+      if (btn) {
+        btn.disabled = true;
+        btn.textContent = '✨ 產生中…';
+      }
+      if (btnHdr) {
+        btnHdr.disabled = true;
+        btnHdr.textContent = '✨ …';
+      }
+      openAiBriefModal();
+      document.getElementById('aiBriefBody').innerHTML = `
+        <div class="state-panel" style="border:none; padding:20px 8px;">
+          <div class="state-spinner"></div>
+          <p>Gemini 正在彙整持股戰情…</p>
+        </div>`;
+
+      const holdingsPayload = portfolioData.holdings.map(h => ({
+        symbol: h.symbol,
+        name: h.name,
+        qty: h.qty,
+        avg: h.avg,
+        price: h.price,
+        mkt: h.mkt,
+        unreal: h.unreal,
+        ret: h.ret,
+        cost: h.cost,
+        advice: h.advice
+      }));
+      const adviceTags = portfolioData.holdings.map(h => ({
+        symbol: h.symbol,
+        action: h.advice?.action,
+        actionKey: h.advice?.actionKey
+      }));
+      const events = [];
+      portfolioData.holdings.forEach(h => {
+        (h.events || []).forEach(ev => events.push({ symbol: h.symbol, ...ev }));
+      });
+
+      try {
+        const res = await fetch('/api/stocks/ai-brief', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            holdings: holdingsPayload,
+            adviceTags,
+            events,
+            news: []
+          })
+        });
+        const data = await res.json();
+        if (data.ok && data.brief) {
+          aiBriefCache = data.brief;
+          indexAiBriefBySymbol(data.brief);
+          renderAiBriefBody(data.brief, data.source);
+          renderStockList();
+        } else {
+          document.getElementById('aiBriefBody').innerHTML =
+            `<div class="state-panel"><h3>簡報失敗</h3><p>${data.error || '請稍後再試'}</p></div>`;
+        }
+      } catch (err) {
+        document.getElementById('aiBriefBody').innerHTML =
+          `<div class="state-panel"><h3>連線失敗</h3><p>${err.message || '無法呼叫 AI 簡報'}</p></div>`;
+      } finally {
+        if (btn) {
+          btn.disabled = false;
+          btn.textContent = '✨ 戰情簡報';
+        }
+        if (btnHdr) {
+          btnHdr.disabled = false;
+          btnHdr.textContent = '✨ 戰情簡報';
+        }
+      }
+    };
+
+    window.openJudgeTour = function() {
+      const overlay = document.getElementById('judgeTourOverlay');
+      overlay.classList.add('active');
+      const steps = overlay.querySelectorAll('.tour-step');
+      steps.forEach(s => s.classList.remove('active'));
+      let i = 0;
+      const tick = () => {
+        steps.forEach(s => s.classList.remove('active'));
+        if (steps[i]) steps[i].classList.add('active');
+        i = (i + 1) % steps.length;
+      };
+      tick();
+      if (judgeTourTimer) clearInterval(judgeTourTimer);
+      judgeTourTimer = setInterval(tick, 1600);
+    };
+
+    window.closeJudgeTour = function() {
+      document.getElementById('judgeTourOverlay').classList.remove('active');
+      if (judgeTourTimer) {
+        clearInterval(judgeTourTimer);
+        judgeTourTimer = null;
+      }
+    };
+
+    window.runJudgeTourAction = function() {
+      closeJudgeTour();
+      loadJudgeDemoHoldings();
+    };
+
+    // Cold judge: if onboarding already seen, still offer one-tap tour hint via help long-press? Help opens guide.
+    // Expose tour from help as secondary: keep existing guide; tour is separate.
+
+    function startAutoRefresh() {
+      stopAutoRefresh();
+      refreshTimer = setInterval(() => {
+        if (!document.hidden) fetchPortfolio();
+      }, 45000);
+    }
+
+    function stopAutoRefresh() {
+      if (refreshTimer) clearInterval(refreshTimer);
+    }
+
+    document.addEventListener('visibilitychange', () => {
+      if (!document.hidden) {
+        fetchPortfolio();
+        startAutoRefresh();
+      } else {
+        stopAutoRefresh();
+      }
+    });
+
+    migrateLegacyDemoDefault();
+    if (!localStorage.getItem(ACTIVE_MODE_KEY)) {
+      localStorage.setItem(ACTIVE_MODE_KEY, 'real');
+      persistEmptyPrivateLedger();
+    }
+    fetchPortfolio();
+    startAutoRefresh();
+  </script>
+
+</body>
+</html>

@@ -1,0 +1,69 @@
+{
+  "version": 1,
+  "exportedAt": "2026-09-03T10:00:00+08:00",
+  "source": "StockPilot AI 體驗示範持股清單",
+  "trades": [
+    {
+      "id": "demo-1",
+      "date": "2026-06-15",
+      "type": "buy",
+      "symbol": "2330",
+      "name": "台積電",
+      "qty": 1000,
+      "price": 950.0,
+      "fee": 28,
+      "tax": 0,
+      "account": "示範帳戶",
+      "notes": "核心半導體龍頭",
+      "side": "buy"
+    },
+    {
+      "id": "demo-2",
+      "date": "2026-07-10",
+      "type": "buy",
+      "symbol": "2308",
+      "name": "台達電",
+      "qty": 500,
+      "price": 1200.0,
+      "fee": 25,
+      "tax": 0,
+      "account": "示範帳戶",
+      "notes": "AI 伺服器電源",
+      "side": "buy"
+    },
+    {
+      "id": "demo-3",
+      "date": "2026-03-01",
+      "type": "buy",
+      "symbol": "0050",
+      "name": "元大台灣50",
+      "qty": 2000,
+      "price": 85.0,
+      "fee": 15,
+      "tax": 0,
+      "account": "示範帳戶",
+      "notes": "大盤被動配置",
+      "side": "buy"
+    },
+    {
+      "id": "demo-4",
+      "date": "2026-08-01",
+      "type": "buy",
+      "symbol": "3037",
+      "name": "欣興",
+      "qty": 1000,
+      "price": 920.0,
+      "fee": 26,
+      "tax": 0,
+      "account": "示範帳戶",
+      "notes": "載板 (觸發事件監控)",
+      "side": "buy"
+    }
+  ],
+  "prices": {
+    "2330": 955.0,
+    "2308": 1250.0,
+    "0050": 106.0,
+    "3037": 945.0
+  }
+}
