@@ -2,12 +2,27 @@
 from __future__ import annotations
 
 import json
+import os
 from copy import deepcopy
 from datetime import datetime, timezone, timedelta
 from pathlib import Path
 
 JOURNAL_DIR = Path(__file__).resolve().parent
-SEED_FILE = JOURNAL_DIR / "demo_seed.json"
+
+def _resolve_seed_file() -> Path:
+    """Seed ledger: $STOCK_SEED_FILE > seed.local.json (gitignored, private) > demo_seed.json."""
+    env = os.environ.get("STOCK_SEED_FILE")
+    if env:
+        return Path(env).expanduser()
+    local = JOURNAL_DIR / "seed.local.json"
+    if local.is_file():
+        return local
+    return JOURNAL_DIR / "demo_seed.json"
+
+
+SEED_FILE = _resolve_seed_file()
+# Extra symbols fetched so 6M sparklines work for common watch names.
+EXTRA_SPARKLINE_SYMBOLS = ["2330", "2308", "2312", "2383", "3037", "3260", "4958", "6182", "0050", "2454", "2317", "2382", "3293"]
 RUNTIME_DIR = JOURNAL_DIR / "runtime"
 RUNTIME_FILE = RUNTIME_DIR / "journal.json"
 TZ_TAIPEI = timezone(timedelta(hours=8))
@@ -330,23 +345,14 @@ def build_portfolio(live: bool = True) -> dict:
 
     journal = load_journal()
     ledger = compute_ledger(journal["trades"], journal.get("prices") or {})
-    
-    # Include all common & user portfolio symbols so 6M sparklines work for every stock
-    all_symbols = list(set(
-        (ledger.get("symbols") or []) + 
-        ["2330", "2308", "2312", "2383", "3037", "3260", "4958", "6182", "0050", "2454", "2317", "2382", "3293"]
-    ))
-
-    quote_result = fetch_quotes(all_symbols, live=live)
+    quote_result = fetch_quotes(ledger.get("symbols") or [], live=live)
     payload = apply_quotes(ledger, quote_result.get("quotes") or {})
     history_result = fetch_histories(
-        all_symbols,
+        ledger.get("symbols") or [],
         quotes=quote_result.get("quotes") or {},
     )
     apply_histories(payload, history_result.get("series") or {})
     annotate_journal(payload, journal)
-    payload["historySeries"] = history_result.get("series") or {}
-    payload["allQuotes"] = quote_result.get("quotes") or {}
     payload["quotesMeta"] = {
         "fetchedAt": quote_result.get("fetchedAt"),
         "sources": quote_result.get("sources"),

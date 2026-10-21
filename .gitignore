@@ -11,3 +11,4 @@ venv/
 runtime/
 node_modules/
 *.log
+seed.local.json
